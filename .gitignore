@@ -5,6 +5,7 @@
 
 # Additional options
 # 新たに追加する場合はここに
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
