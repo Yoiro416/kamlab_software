@@ -22,6 +22,19 @@ GitHub Desktopがインストールできれば、自分のアカウントを登
 GitHubの作業画面上で、Current repositoryからClone repository...を選択するか、メニューバーのFileからClone repository...を選択します。するとkamlab_softwareというリポジトリが表示されるはずなので、それをクリックし配置するディレクトリを自分の分かりやすい場所に指定してください。これでCloneが完了し、指定したディレクトリ上でこのドキュメントを含むリポジトリのファイルが見えるはずです。
 ![clone](images/clone.png)![clone_another](images/clone_2.png)
 
+## branchを作成する
+
+Current branchにmainと表示されていることを確認します。これが現在見ているbranchです。  
+Current branchからBranches$\rarr$New branchボタンを選択し、新規ブランチ作成画面を開き付けたい名前を入力し、create branchボタンで作成が完了します。  
+
+![createNewBranch](images/create_branch.png)
+
+## publish branchでリモートにbranchを上げる
+
+publish branchボタンでローカル上に作成したこのbranchをリモート上に上げることができます。
+
+![publishBranch](images/publish_branch.png)
+
 ## 作業する(ファイル編集)
 
 cloneして作ったディレクトリ内で、いつものように作業を行ってください。VSCodeがGitHubとの連携が楽でおすすめですが、テキストエディタでも特に問題はありません。ファイルの追加などもいつも通り行えます。
@@ -42,9 +55,16 @@ commitすれば画面にpushのオプションが表示されるはずなので�
 
 ## pull requestを出す
 
-**そのブランチでの作業が完了してからこの操作を行ってください。** branchで作業をしているとき、pushを1回以上行うとGitHub desktopの作業画面にpull reqというボタンが表示されます。本流に変更を反映したいときはこのボタンを押してください。pull reqではなくpushやfetchのボタンが押したいなら、その左側の下向き三角でプルダウンメニューを展開して選択できます。  
+**そのブランチでの作業が完了してからこの操作を行ってください。** branchで作業をしているとき、pushを1回以上行うとGitHub desktopの作業画面にpreview pull requestというボタンが表示されます。本流に変更を反映したいときはまずこのボタンを押してください。あるいはメニューバーからBranch$\rarr$Preview pull requestでも開けます。これでpull reqを出す対象のbranchと比較したときどのような変更が加わるのかを確認できます。  
 
-以上で一通りの作業が完了します。
+![createPullReq](images/create_pullreq.png)
+
+左上がMerge [n] commit into [対象のbranch] from [現在のbranch]となっています。mainに対して変更を反映したいのでこのような表示です。  
+左下にはAble to mergeという表示があります。特に問題なくmerge出来そうなのでCreate pull requestボタンを押せばmainに対してpull requestが作成できます(ブラウザでGitHubが開くので、説明などを記入してください)
+
+![writePullReq](images/write_pullreq.png)
+
+あとはMerge pull requestが通れば反映されます。以上で一通りの作業が完了します。
 
 ## fetchについて
 
