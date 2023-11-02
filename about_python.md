@@ -8,9 +8,10 @@
 
 作業環境をそろえるためpythonの仮想環境-venvを使用する予定です。
 
-> python -m venv venv
+> python 3.11 -m venv venv
 
-でsemi_venvという名称のvenvを作成
+でsemi_venvという名称のvenvをPython3.11で構築できます  
+Python3.11がPCにインストールされていない場合は新たにインストールする必要があるので、お願いします  
 
 > .\venv\Scripts\activate
 
