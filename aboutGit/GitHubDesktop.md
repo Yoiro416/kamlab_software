@@ -22,6 +22,19 @@ GitHub Desktopがインストールできれば、自分のアカウントを登
 GitHubの作業画面上で、Current repositoryからClone repository...を選択するか、メニューバーのFileからClone repository...を選択します。するとkamlab_softwareというリポジトリが表示されるはずなので、それをクリックし配置するディレクトリを自分の分かりやすい場所に指定してください。これでCloneが完了し、指定したディレクトリ上でこのドキュメントを含むリポジトリのファイルが見えるはずです。
 ![clone](images/clone.png)![clone_another](images/clone_2.png)
 
+## branchを作成する
+
+Current branchにmainと表示されていることを確認します。これが現在見ているbranchです。  
+Current branchからBranches$\rarr$New branchボタンを選択し、新規ブランチ作成画面を開き付けたい名前を入力し、create branchボタンで作成が完了します。  
+
+![createNewBranch](images/create_branch.png)
+
+## publish branchでリモートにbranchを上げる
+
+publish branchボタンでローカル上に作成したこのbranchをリモート上に上げることができます。
+
+![publishBranch](images/publish_branch.png)
+
 ## 作業する(ファイル編集)
 
 cloneして作ったディレクトリ内で、いつものように作業を行ってください。VSCodeがGitHubとの連携が楽でおすすめですが、テキストエディタでも特に問題はありません。ファイルの追加などもいつも通り行えます。
