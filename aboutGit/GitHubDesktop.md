@@ -25,7 +25,7 @@ GitHubの作業画面上で、Current repositoryからClone repository...を選�
 ## branchを作成する
 
 Current branchにmainと表示されていることを確認します。これが現在見ているbranchです。  
-Current branchからBranches$\rarr$New branchボタンを選択し、新規ブランチ作成画面を開き付けたい名前を入力し、create branchボタンで作成が完了します。  
+Current branchからBranches -> New branchボタンを選択し、新規ブランチ作成画面を開き付けたい名前を入力し、create branchボタンで作成が完了します。  
 
 ![createNewBranch](images/create_branch.png)
 
@@ -55,7 +55,7 @@ commitすれば画面にpushのオプションが表示されるはずなので�
 
 ## pull requestを出す
 
-**そのブランチでの作業が完了してからこの操作を行ってください。** branchで作業をしているとき、pushを1回以上行うとGitHub desktopの作業画面にpreview pull requestというボタンが表示されます。本流に変更を反映したいときはまずこのボタンを押してください。あるいはメニューバーからBranch$\rarr$Preview pull requestでも開けます。これでpull reqを出す対象のbranchと比較したときどのような変更が加わるのかを確認できます。  
+**そのブランチでの作業が完了してからこの操作を行ってください。** branchで作業をしているとき、pushを1回以上行うとGitHub desktopの作業画面にpreview pull requestというボタンが表示されます。本流に変更を反映したいときはまずこのボタンを押してください。あるいはメニューバーからBranch->Preview pull requestでも開けます。これでpull reqを出す対象のbranchと比較したときどのような変更が加わるのかを確認できます。  
 
 ![createPullReq](images/create_pullreq.png)
 
