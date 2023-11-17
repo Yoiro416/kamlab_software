@@ -14,3 +14,5 @@
 raspberry pi 4でもpyserialは使えるはず、書き込み側のPIと読み取り側のPIで軽く読み替えを行えば1対1での通信テスト程度は行えるはず。
 
 Raspberry pi 4なので、UART0,UART2~5を使用可能なはず。  
+
+確認事項:
