@@ -6,7 +6,7 @@
 [Enable-UART](https://tshell.hatenablog.com/entry/2021/03/04/205346)  
 [Enable-UART2](https://tshell.hatenablog.com/entry/2021/03/04/205346)
 
-pinoutコマンドの実行までを行ってください。それ以降は用途によって変わります。  
+前者のサイトを参考とする場合はpinoutコマンドの実行までを行ってください。それ以降は用途によって変わります。  
 
 有効化したUARTピンを使用する方法についての参考:  
 [UART-ConnectionTest](https://qiita.com/s_fujii/items/466d455ca19fb4c20744)
