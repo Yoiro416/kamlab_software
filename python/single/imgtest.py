@@ -36,7 +36,7 @@ while True:
         break
 
 # キー入力を待つ
-# cv2.waitKey(0)
+#cv2.waitKey(0)
 
 # 画像を閉じる
 # cv2.destroyAllWindows()
