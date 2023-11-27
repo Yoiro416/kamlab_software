@@ -30,3 +30,4 @@ while True:
     
     t = 60 - dt_now.second
     time.sleep(t)  #更新する時間の設定, 時計1分ごとに更新される。
+#コメントを追加
