@@ -52,11 +52,12 @@ utc = utctime(m1)
 # print(now)
 
 filename = "subimage_{0}_{1}.jpg".format(m2,m1)
-width,height= img.shape[:2]
+
 
 # print(filename)
 
 img = cv2.imread(filename)
+width,height= img.shape[:2]
 
 # ウィンドウの初期表示
 cv2.imshow("Image with time", img)
