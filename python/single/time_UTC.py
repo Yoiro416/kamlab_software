@@ -1,6 +1,5 @@
 import time
 import datetime
-
 while True:
     dt_now_utc= datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=0)))
     print(dt_now_utc.strftime('%Y年%m月%d日  %a  ')+
