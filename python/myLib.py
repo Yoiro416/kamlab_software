@@ -18,3 +18,5 @@ class mylib_class:
 
 if __name__ == '__main__':
     mylib_class.main()
+
+#オレのおおおおお
