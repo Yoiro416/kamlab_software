@@ -52,6 +52,7 @@ utc = utctime(m1)
 # print(now)
 
 filename = "subimage_{0}_{1}.jpg".format(m2,m1)
+width,height= img.shape[:2]
 
 # print(filename)
 
@@ -74,17 +75,22 @@ while True:
     cv2.putText(img_with_time, now_day, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
     cv2.putText(img_with_time, now_time, (55, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 6, cv2.LINE_AA)
 
+    img_rotate = cv2.rotate(img_with_time,cv2.ROTATE_90_CLOCKWISE)
+
     #赤い枠を作る関数
     def redline():
         #長方形を描画
         start_point = (0,0)
         end_point = (480,800)
-        cv2.rectangle(img_with_time,start_point,end_point,(0,0,255),thickness=15,lineType=cv2.LINE_8)
+        cv2.line(img_rotate,(0,0),(0,height),(0,0,255),thickness=15,lineType=cv2.LINE_AA)
+        cv2.line(img_rotate,(0,0),(width,0),(0,0,255),thickness=15,lineType=cv2.LINE_AA)
+        cv2.line(img_rotate,(width,height),(0,height),(0,0,255),thickness=15,lineType=cv2.LINE_AA)
+        cv2.line(img_rotate,(width,height),(width,0),(0,0,255),thickness=15,lineType=cv2.LINE_AA)
         cv2.imshow('Image with time and redline',img_with_time)
         
 
     # 画像を表示
-    cv2.imshow("Image with time", img_with_time)
+    cv2.imshow("Image with time", img_rotate)
     
 
     # 1秒ごとに更新
