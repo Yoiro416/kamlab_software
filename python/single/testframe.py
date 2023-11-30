@@ -2,7 +2,6 @@ import cv2
 import datetime
 import random
 
-
 # 重複のない乱数を発生させる関数
 def rand_ints_nodup(a):
   ns = []
@@ -69,22 +68,23 @@ def show_image(i):#i : integer, 0<=i<=15
     filename = "subimage_{0}_{1}.jpg".format(m2,m1)
     print(filename)
     
-    path = "image/"+ filename
+    path = "image/" + filename
     
     img = cv2.imread(path)
     
     height, width = img.shape[:2]
     
-    # 判定
-    n1 = False
-    n2 = False
-    n3 = False
-    n4 = False
+    
     
     cv2.imshow("Image with time", img)
     
     
     while True:
+        
+        n1 = False
+        n2 = False
+        n3 = False
+        n4 = False
         
         # 現在時刻を取得
         # now = datetime.datetime.now()
@@ -102,7 +102,18 @@ def show_image(i):#i : integer, 0<=i<=15
         cv2.putText(img_with_time, now_time, (55, 400), cv2.FONT_HERSHEY_SIMPLEX, 2.5, (255, 255, 255), 6, cv2.LINE_AA)
         
         
-        #条件を隣同士の接続が正しいなら、と変更する。(今は現在時刻が0~30秒となっている)
+        if now.second>=0 and now.second<30:
+            n1 = True 
+        
+        if now.second>=15 and now.second<45:
+            n2 = True      
+            
+        if now.second>=30 and now.second<60:
+            n3 = True 
+        
+        if now.second>=45 or now.second<15:
+            n4 = True 
+        
         create_frame(img_with_time, height, width, n1, n2, n3, n4)
         
         #90°回転させる
@@ -119,21 +130,8 @@ def show_image(i):#i : integer, 0<=i<=15
         if key == ord('q'):
             cv2.destroyAllWindows(img)
             break
-        
-        #条件を追加
-        #a,b,c,dがそれぞれ押されたら消える。
-        if key == ord('a'):
-            n1 = True
-            
-        if key == ord('b'):
-            n2 = True
-            
-        if key == ord('c'):
-            n3 = True
-            
-        if key == ord('d'):
-            n4 = True
     
+        
         
     return 
 
