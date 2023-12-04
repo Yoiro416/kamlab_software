@@ -10,6 +10,10 @@ import serial
 # returnを使って値を渡すことができないのでグローバルで定義
 #TODO 衝突やロックを回避するための戦略があるか調べる
 res = [0 for i in range(4)]
+# ser_r = serial.Serial('/dev/ttyAMA1', 115200, timeout = 5)  #UART初期化 27 28
+# ser_l = serial.Serial('/dev/ttyAMA2', 115200, timeout = 5)  #UART初期化 7 29
+# ser_t = serial.Serial('/dev/ttyAMA3', 115200, timeout = 5)  #UART初期化 24 21
+# ser_b = serial.Serial('/dev/ttyAMA4', 115200, timeout = 5)  #UART初期化 32 33
 
 def main():
     lock = Lock()
