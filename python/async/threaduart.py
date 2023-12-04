@@ -26,6 +26,8 @@ def main():
     
     # 上記2つのスレッドの完了を待つ
     # これがない場合実行がprintにそのまま突入し、デフォルト値が使用される
+    # is_alive()はメンバではなくメソッドなので注意
+    
     # while t1.is_alive() == True or t2.is_alive() == True:
     #     continue
     
