@@ -94,6 +94,7 @@ def async_conn(lock):
         val1 = int(v1)
         val2 = int(v2)
         print(f'{cmd=},{val1=},{val2=}')
+        #TODO ここで取得した値を基に処理を行う。場合によってはlockオブジェクトを使用した処理を当関数内から別の関数に移したほうが読みやすそう
         res[0] = data
 
 def async_send():
