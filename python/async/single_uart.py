@@ -17,11 +17,12 @@ res = [0 for i in range(4)]
 # ser_l = serial.Serial('/dev/ttyAMA2', 115200, timeout = 5)  #UART初期化 7 29
 # ser_t = serial.Serial('/dev/ttyAMA3', 115200, timeout = 5)  #UART初期化 24 21
 # ser_b = serial.Serial('/dev/ttyAMA4', 115200, timeout = 5)  #UART初期化 32 33
+# このブロックは実験に使用しない
 
 ## 実験環境において、デバイスファイルとハードウェア的な端子の対応を確かめるために実験を行った。
 # 上記ttyAMA1~4までの設定と乖離があるため、バージョンによる違いがないかを確認する必要がある。
 # デバイスファイルとハードの対応は、行末日のコメントにあるGPIOピンを接続した上で、その行のコードによりserを定義させ実行する。
-# たとえば、UART2の接続を確認したい場合は自身のデバイスのGPIO0と1のピンを接続し、行先頭のコメントを外す。その後実行してb'test\n'とう表示が得られれば正しく接続されている
+# たとえば、UART2の接続を確認したい場合は自身のデバイスのGPIO0と1のピンを接続し、行先頭のコメントを外す。その後実行してb'test\n'と表示が得られれば正しく接続されている
 
 ser = serial.Serial('/dev/ttyAMA0', baudrate=115200, timeout=1) # UART0/1 ttyAMA0 => GPIO 14,15 (pin8,10)
 # ser = serial.Serial('/dev/ttyAMA2', baudrate=115200, timeout=1) # UART2 ttyAMA2 => GPIO 0,1 (pin27,28)
