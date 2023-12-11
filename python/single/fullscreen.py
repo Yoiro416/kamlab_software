@@ -55,10 +55,9 @@ def create_frame(filename,height,width,n1,n2,n3,n4):
       
       
 #フルスクリーンにする関数  
-def imshow_fullscreen(winname,img):
+def imshow_fullscreen(winname):
     cv2.namedWindow(winname,cv2.WINDOW_NORMAL)
     cv2.setWindowProperty(winname,cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
-    cv2.imshow(winname,img)
     
 
 
@@ -71,17 +70,17 @@ def show_image(i):#i : integer, 0<=i<=15
     
     
     filename = "subimage_{0}_{1}.jpg".format(m2,m1)
-    print(filename)
+    #print(filename)
     
-    #path = "image/" + filename
+    path = "image/" + filename
+    window_name = 'Image with time'
     
     img = cv2.imread(filename)
     
+    #フルスクリーンにする関数
+    imshow_fullscreen(window_name)
+    
     height, width = img.shape[:2]
-    
-    
-    
-    cv2.imshow("Image with time", img)
     
     
     while True:
@@ -127,10 +126,8 @@ def show_image(i):#i : integer, 0<=i<=15
 
 
         # 画像を表示
-        #cv2.imshow("Image with time", img_rotate)
+        cv2.imshow(window_name, img_rotate)
         
-        imshow_fullscreen('Image with time',img_rotate)
-
         # 1秒ごとに更新
         key = cv2.waitKey(1000)
         
