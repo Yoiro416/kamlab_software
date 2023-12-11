@@ -27,7 +27,7 @@ def main():
     t1.start()
     w1.start()
     check_task.start()
-    print("ALl threads are running...")
+    print("All threads are running at first time...")
     
     # 上記2つのスレッドの完了を待つ
     # これがない場合実行がprintにそのまま突入し、デフォルト値が使用される
@@ -40,7 +40,7 @@ def main():
     while True:
         if not t1.is_alive():
             print("t1 new entry")
-            t1 = Thread(target=async_conn, args=[0,lock])
+            t1 = Thread(target=async_conn, args=[lock])
             t1.start()
             done_t1 += 1
 
