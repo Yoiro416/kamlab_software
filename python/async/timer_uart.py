@@ -7,22 +7,9 @@ import serial
 # 今後は自作モジュール読み込みもする必要がある
 import single
 
-# Threadingで実装するのがよさそう
-# asyncioとは違い、Threadは終了を待たずに次のコードへ進むため、whileでスピンさせないとデフォルトの値が以降のコードで使用され、
-# 変更される頃にはコードが終わってる
-
-
 # returnを使って値を渡すことができないのでグローバルで定義
 #TODO 衝突やロックを回避するための戦略があるか調べる
 res = [0 for i in range(4)]
-
-# なんか対応おかしくない？
-# ser = serial.Serial('/dev/ttyAMA1', 115200, timeout=5)
-# ser_r = serial.Serial('/dev/ttyAMA1', 115200, timeout = 5)  #UART初期化 27 28
-# ser_l = serial.Serial('/dev/ttyAMA2', 115200, timeout = 5)  #UART初期化 7 29
-# ser_t = serial.Serial('/dev/ttyAMA3', 115200, timeout = 5)  #UART初期化 24 21
-# ser_b = serial.Serial('/dev/ttyAMA4', 115200, timeout = 5)  #UART初期化 32 33
-# このブロックは実験に使用しない
 
 ## 実験環境において、デバイスファイルとハードウェア的な端子の対応を確かめるために実験を行った。
 # 上記ttyAMA1~4までの設定と乖離があるため、バージョンによる違いがないかを確認する必要がある。

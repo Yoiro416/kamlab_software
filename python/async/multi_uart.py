@@ -2,25 +2,10 @@ from threading import Thread, Lock
 import time
 import serial
 
-# Threadingで実装するのがよさそう
-# asyncioとは違い、Threadは終了を待たずに次のコードへ進むため、whileでスピンさせないとデフォルトの値が以降のコードで使用され、
-# 変更される頃にはコードが終わってる
-
-
 # returnを使って値を渡すことができないのでグローバルで定義
 #TODO 衝突やロックを回避するためlockオブジェクトを利用する
 res = [0 for i in range(4)]
 # 通信によってやり取りするデータを格納するフィールド
-cmd = 0
-val1 = 0
-val2 = 0
-
-# なんか対応おかしくない？
-# ser = serial.Serial('/dev/ttyAMA1', 115200, timeout=5)
-# ser_r = serial.Serial('/dev/ttyAMA1', 115200, timeout = 5)  #UART初期化 27 28
-# ser_l = serial.Serial('/dev/ttyAMA2', 115200, timeout = 5)  #UART初期化 7 29
-# ser_t = serial.Serial('/dev/ttyAMA3', 115200, timeout = 5)  #UART初期化 24 21
-# ser_b = serial.Serial('/dev/ttyAMA4', 115200, timeout = 5)  #UART初期化 32 33
 
 ## 実験環境において、デバイスファイルとハードウェア的な端子の対応を確かめるために実験を行った。
 # 上記ttyAMA1~4までの設定と乖離があるため、バージョンによる違いがないかを確認する必要がある。
@@ -56,13 +41,9 @@ def main():
     # これがない場合実行がprintにそのまま突入し、デフォルト値が使用される
     # is_alive()はメンバではなくメソッドなので注意
     
-    # while t1.is_alive() == True or t2.is_alive() == True:
-    #     continue
-    
     done_t1 = 1
     while True:
         if not t1.is_alive():
-            # print("t1 new entry")
             t1 = Thread(target=async_conn, args=[lock,ser_r,0])
             t1.start()
             done_t1 += 1
