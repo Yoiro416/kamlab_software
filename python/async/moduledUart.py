@@ -4,10 +4,12 @@ import time
 
 # 各々が一つの辺(接続点)を担当する。
 # daemon = Trueで固定
-left = threadModule.ThreadUART(devicename='device1', baudrate=123, timeout=0.1)
-right = threadModule.ThreadUART(devicename='device2', baudrate=100, timeout=0.1)
-top = threadModule.ThreadUART(devicename='device3', baudrate=500, timeout=0.2)
-bottom = threadModule.ThreadUART(devicename='device4', baudrate=1000, timeout=0.01)
+rate = 115200 # 共通
+t = 1 # 共通
+left = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, timeout=t)
+right = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, timeout=t)
+top = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, timeout=t)
+bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA5', baudrate=rate, timeout=t)
 # このモジュールの役割はこれを束ねて動作を決定すること
 
 def main():
@@ -24,7 +26,7 @@ def main():
 
 def controller():
     #TODO 仮置きテスト->
-    print(f"READING: {left.get_cmd() = }, {right.get_cmd() = }, {top.get_cmd() = }, {bottom.get_cmd() = }")
+    print(f"\n==========\nREADING: {left.get_cmd() = }, {right.get_cmd() = }, {top.get_cmd() = }, {bottom.get_cmd() = }\n==========\n")
 # main側から各インスタンスにアクセスするのに使う
 # 競合を避けるためwith lockでアクセスできるアクセッサ―get_cmd()を使用する
 # こちらからアクセスする場合はこのようにgetterやsetterを使用すること。

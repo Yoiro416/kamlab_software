@@ -23,13 +23,11 @@ class ThreadUART(Thread):
         
     
     def async_read(self):
-        i=0
-        while True and i < 10:
-            
-            ## 切り替え
-            # data = self._ser.read_until(b'*')
-            data = ("b'1,2,3,'")
-            
+        ## 切り替え
+        # data = self._ser.read_until(b'*')
+        data = ("b'1,2,3,'")
+        i = 0
+        while True:
             try:
                 with self._lock:
                     self._c, self._val1, self._val2, _ = str(data).split(',')
@@ -44,19 +42,19 @@ class ThreadUART(Thread):
             sleep(1)# 最高速で回してもあまり利点はなさそうなので指定秒ごとに実行
 
     def async_write(self):
-        write_data = 5 #DEBUG
-
-        # 送信するメッセージの組み立て
-        with self._lock:
-            msg = ''
-            msg += '{},'.format(1)
-            msg += '{},'.format(self._id)
-            msg += '{},*'.format(write_data)
-
-        # self._ser.write(b'msg') 
-        for i in range(10):
-            print(f'wrote {i} times. {self.getName}')
+        # self._ser.write(b'msg')
+        j = 0 
+        while True:
+            write_data = 5 #DEBUG
+            # 送信するメッセージの組み立て
+            with self._lock:
+                msg = ''
+                msg += '{},'.format(1)
+                msg += '{},'.format(self._id)
+                msg += '{},*'.format(write_data)
+            print(f'wrote {j} times. {self.getName}')
             print(f'{msg = }')
+            j += 1
             sleep(1)
     
     def async_check(self):
