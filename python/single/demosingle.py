@@ -117,7 +117,7 @@ def show_image(i):#i : integer, 0<=i<=15
     path = "image/"
     window_name = 'Image with time'
     
-    img = cv2.imread(filename)
+    img = cv2.imread(path+filename)
     #height, width = img.shape[:2]
 
     
@@ -130,9 +130,9 @@ def show_image(i):#i : integer, 0<=i<=15
     while True:
         
         if(flag == 0):
-            img = cv2.imread(singefile)
+            img = cv2.imread(path+singefile)
         else:
-            img = cv2.imread(filename)
+            img = cv2.imread(path+filename)
         
         n1 = False
         n2 = False
