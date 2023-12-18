@@ -4,6 +4,14 @@ from time import sleep
 
 MYID = 1
 
+'''
+Writeに使うCommandについて
+cmd が 1: 死活監視と全体制御, val1 : 自分のID , val2: トークンが有効か
+
+2: IDの割り振り, val1: 使用可能なIDバイナリ(16bit), val2: -1 (使用せず)
+'''
+
+
 class ThreadUART(Thread):
     
     # _ prefix is annotation : this function/variable is private
@@ -25,7 +33,7 @@ class ThreadUART(Thread):
     def async_read(self):
         ## 切り替え
         # data = self._ser.read_until(b'*')
-        data = ("b'1,2,3,'")
+        data = ("b'1,2,'")
         i = 0
         while True:
             try:
@@ -49,17 +57,18 @@ class ThreadUART(Thread):
             # 送信するメッセージの組み立て
             with self._lock:
                 msg = ''
-                msg += '{},'.format(1)
-                msg += '{},'.format(self._id)
-                msg += '{},*'.format(write_data)
+                msg += '{},'.format(1) # command ID
+                msg += '{},*'.format(self._id) # self ID
+                msg += ''.format(1) # トークンがまだ有効か
             print(f'wrote {j} times. {self.getName}')
             print(f'{msg = }')
             j += 1
             sleep(1)
     
-    def async_check(self):
-        #TODO 内容を記述
-        pass
+    # def async_check(self):
+    #     #TODO 内容を記述
+    #     pass
+    # getterでいいじゃん
     #このメソッドで、自分が隣り合っているべきデバイスが正しく接続されているかどうかを判別する
     #async_readから呼び出す感じになるはず  
     #MYIDに応じて判定を変える
@@ -72,10 +81,6 @@ class ThreadUART(Thread):
     def get_val1(self):
         with self._lock:
             return self._val1
-    
-    def get_val2(self):
-        with self._lock:
-            return self._val2
 
     def get_id(self):
         with self._lock:
@@ -84,6 +89,10 @@ class ThreadUART(Thread):
     def set_id(self,id):
         with self._lock:
             self._id = id
+            
+    def is_connect(self):
+        with self._lock:
+            return self._isconnect
 
     def run(self):
         read_task = Thread(target=self.async_read, args=[])
