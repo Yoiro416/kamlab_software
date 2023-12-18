@@ -6,10 +6,11 @@ import time
 # daemon = Trueで固定
 rate = 115200 # 共通
 t = 1 # 共通
-left = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, timeout=t)
-right = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, timeout=t)
-top = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, timeout=t)
-bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA5', baudrate=rate, timeout=t)
+MYID = 1
+left = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15
+right = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO0,1
+top = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, id=MYID, timeout=t) # GPIO8,9
+bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA5', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13
 # このモジュールの役割はこれを束ねて動作を決定すること
 
 def main():
