@@ -2,15 +2,13 @@ import cv2
 import datetime
 import random
 
-#マウスの座標の所得(cv2.setMouseCallback関数)は
-# return(戻り値)が設定できないため、
-# 円の色の変更(単体↔️全体切り替えの判定)などはグローバル関数での対応となる
-
-color = (0,255,255)
+#global変数
+color = (0,0,0)
 radius = 30
 center = (430,60)
+qcenter = (430,740)
 utc = 350 #仮
-flag = 0
+flag = 1
 singefile = 'world2.jpg'
 #0->単体,1->全体
 
@@ -78,8 +76,8 @@ def imshow_fullscreen(winname):
 def click_pos(event,x,y,flags,params):
     global color,utc,flag
     if event == cv2.EVENT_LBUTTONDOWN:
-        pos_str = '(x,y)=('+str(x)+','+str(y)+')'
-        print(pos_str)  
+        #pos_str = '(x,y)=('+str(x)+','+str(y)+')'
+        #print(pos_str)  
         if(flag == 0):
             utc = int(str(x))//100
 
@@ -94,12 +92,11 @@ def click_pos(event,x,y,flags,params):
             else:
                 color = (0,255,255)
                 flag = 0
-    
-    #if event == cv2.EVENT_MOUSEMOVE:
-    #    pos_str = '(x,y)=('+str(x)+','+str(y)+')'
-    #    print(pos_str) 
+        
+        #終了円の場合
+        if(int(str(x))>(60-radius) and int(str(x))<(60+radius) and int(str(y))>(430-radius) and int(str(y))<(430+radius)):
+            flag = 3
                 
-
 
 def show_image(i):#i : integer, 0<=i<=15
     # iに応じて表示する
@@ -156,7 +153,9 @@ def show_image(i):#i : integer, 0<=i<=15
         
         #画像に円を描画
         cv2.circle(img_with_time,center,radius,color,thickness=-1,lineType=cv2.LINE_AA)
-
+        
+        #画像に円2を描画
+        cv2.circle(img_with_time,qcenter,radius,(0,0,255),thickness=-1,lineType=cv2.LINE_AA)
         
         if now.second>=0 and now.second<30:
             n1 = True 
@@ -188,7 +187,7 @@ def show_image(i):#i : integer, 0<=i<=15
         
 
         # 'q'キーが押されたら終了
-        if key == ord('q'):
+        if (key == ord('q') or flag == 3):
             cv2.destroyAllWindows(img)
             break
     
