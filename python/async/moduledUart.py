@@ -67,6 +67,9 @@ def main():
                     right.set_complete(True)
                 else:
                     right.set_complete(False)
+            else:
+                right.set_complete(False)
+                right.set_relay(False)
         #TODO MYID 7以降のデバイスについて、同様にリレー処理や完成処理をセットしていく。
             
             
