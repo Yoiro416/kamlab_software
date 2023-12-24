@@ -4,9 +4,11 @@ import serial
 
 '''
 Writeに使うCommandについて
-cmd が 1: 死活監視と全体制御, val1 : 自分のID , val2: トークンが有効か
+[connect_from],[val1],[val2]
 
-2: IDの割り振り, val1: 使用可能なIDバイナリ(16bit), val2: -1 (使用せず)
+connect_from : どのIDから接続されているかを表す。-1で無効な値を表現
+val1 : 0でID0とは切り離されており、1でdevice ID 0からつながっている。2はすべてが接続したと解釈し、3でIDの再割り振り指示と解釈する
+val2 : 16bitデータ。ランダムなID割り振りに使う。val1が2以外の時は0(まあ何でもいいけど軽量な値)
 '''
 
 
@@ -20,11 +22,12 @@ class ThreadUART(Thread):
         self._lock = Lock()
         self._isrelay = relay # 自分
         self._id = id
-        self._c = 0
         self._val1 = 0
         self._val2 = 0
-        self._token = 0 # 0/1でboolとして扱う。エンコードの問題
-        self._isconnect = False
+        self._iscomplete = False
+        self._connect_from = -1
+        self._reset_cmd = False
+        self._reset_unsetIDs = 0b1111111111111111 # 16bit
         
         ## デバッグメッセージ&通信のセットアップ
         print(f'initialize finish. {devicename = }, {baudrate = }, {id = }, {timeout = }')
@@ -35,25 +38,37 @@ class ThreadUART(Thread):
         i = 0
         while True:
             data = self._ser.read_until(b'*')
-            # data = ("b'1,2,'")
             try:
                 with self._lock:
-                    self._c, self._val1, self._val2, _ = str(data).split(',')
-                    self._c = self._c.lstrip("b'")
-                    self._c = int(self._c)
-                    self._isconnect = True
-                    print(f'read success, {self._c = }, {self._val1 = }, {self._val2 = }, {self._isconnect =}')
+                    # self._connect_from_temp, self._val1, self._val2, _ = str(data).split(',')
+                    self._connect_from_temp, self._val1_temp, self._val2_temp, _ = str(data).split(',')
+                    
+                    self._val1 = int(self._val1_temp)
+                    self._val2 = int(self._val2_temp)
+                    self._connect_from_temp = self._connect_from_temp.lstrip("b'")
+                    self._connect_from = int(self._connect_from_temp)
+                    print(f'read success, {self._connect_from = }, {self._val1 = }, {self._val2 = }')
+                    if self._val1 == 0:
+                        self._isrelay = False
+                    elif self._val1 == 1 or self._val1 == 2:
+                        self._isrelay = True
+                    
+                    if self._val1 == 3:
+                        self._reset_cmd = True
+                        self._reset_unsetIDs = self._val2
+                        # else句を用いてこのコマンドの自動削除は行わない。このクラスの呼び出し側でしかるべき処理が行われたのち、その呼び出し側の責任でフラグをクリアする。
             except:
                 with self._lock:
                     print('read failed')
-                    self._isconnect = False
+                    self._connect_from = -1
             i += 1
             data = '' # clear data
-            print('executed {} times'.format(i))
+            # print('executed {} times'.format(i))
             sleep(1)# 最高速で回してもあまり利点はなさそうなので指定秒ごとに実行
 
 
     def async_write(self):
+        # 無限ループで回す死活監視用のデータ送信機能。
         # self._ser.write(b'msg')
         j = 0 
         while True:
@@ -61,51 +76,64 @@ class ThreadUART(Thread):
             # 送信するメッセージの組み立て
             with self._lock:
                 msg = ''
-                msg += '{},'.format(1) # command ID
-                msg += '{},'.format(self._id) # self ID
-                msg += '{},*'.format(self._token) # トークンがまだ有効か
+                msg += '{},'.format(self._id) # MYID
+            
+                if self._iscomplete == True:
+                    msg += '2,'
+                elif self._isrelay:
+                    msg += '1,'# ID0からつながっている
+                else:
+                    msg += '0,'# ID0からつながっていない
+            
+                msg += '0,*' # dummy
+            
             # print(f'wrote {j} times. {self.getName}')
             # print(f'{msg = }')
             self._ser.write(msg.encode())
             j += 1
             sleep(0.9)
-    
-    # def async_check(self):
-    #     #TODO 内容を記述
-    #     pass
-    # getterでいいじゃん
-    #このメソッドで、自分が隣り合っているべきデバイスが正しく接続されているかどうかを判別する
-    #async_readから呼び出す感じになるはず  
-    #MYIDに応じて判定を変える
+            
+    def reset_command(self,val : int):
+        with self._lock:
+            msg = ''
+            msg += '{},'.format(self._id)
+            msg += '3,' # リセットを行うよう指示
+            msg += val # 0b1111111111111111で最初は実行される
+            self._ser.write(msg.encode())
+            
     
     # Accessorたち
-    def get_cmd(self):
-        with self._lock:
-            return self._c
-    
     def get_val1(self):
         with self._lock:
             return self._val1
-
-    def get_id(self):
+    
+    def get_val2(self):
         with self._lock:
-            return self._id
+            return self._val2
+
+    def get_unsetIDs(self):
+        with self._lock:
+            return self._reset_unsetIDs
     
     def set_id(self,id : int):
         with self._lock:
             self._id = id
-            
-    def is_connect(self):
+        
+    def get_state(self):
         with self._lock:
-            return self._isconnect
+            return self._connect_from,self._isrelay,self._iscomplete,self._reset_cmd
     
-    '''
-    ひとつ前のIDを持つデバイスと接続しているかを設定
-    このクラスを呼び出す側がうまいことやる
-    '''
-    def set_token(self,token : int):
+    def set_relay(self,isrelay : bool):
         with self._lock:
-            self._token = token
+            self._isrelay = isrelay
+    
+    def set_complete(self,state : bool):
+        with self._lock:
+            self._iscomplete = state
+
+    def unflag_reset(self):
+        with self._lock:
+            self._reset_cmd = False
 
     def run(self):
         read_task = Thread(target=self.async_read, args=[])
