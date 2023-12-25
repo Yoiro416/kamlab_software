@@ -205,6 +205,19 @@ def reset_function(flag : int):
     return the flag
     
     '''
+    # 最初の段階はどのデバイスがどのIDか把握できないので、自身のIDをベースとして転送先を決めるというよりも
+    # flagのbitのうち有効なものを数え上げて転送先を決定したほうがよさそう???
+    # 10個以上残っていれば、自分が一つ使用したうえでこれを右に転送する
+    # 9個残っていれば、自分が一つ使用して残り8個、これを下に送信すればよい
+    # 8個以上残っていれば、自分が一つ使用したうえでこれを左に転送する
+    '''こんな感じ?
+    searcher = 0b1
+    count = 0
+    for i in range(16):
+        if flag & searcher == 1:
+            count += 1
+        searcher = searcher << 1
+    '''
     global MYID
     MYID = 100
     print(f'stab - reset function. {flag}')
