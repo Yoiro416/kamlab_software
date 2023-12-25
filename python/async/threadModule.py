@@ -20,6 +20,8 @@ class ThreadUART(Thread):
         self.setDaemon(True)
         
         self._lock = Lock()
+        # self.initialize(id = id)
+        ## この辺をまとめてinitialize関数に入れ込んだ。多分エラーは吐かないと思うけど何かあれば元に戻すように
         self._isrelay = relay # 自分
         self._id = id
         self._val1 = 0
@@ -28,6 +30,7 @@ class ThreadUART(Thread):
         self._connect_from = -1
         self._reset_cmd = False
         self._reset_unsetIDs = 0b1111111111111111 # 16bit
+        
         
         ## デバッグメッセージ&通信のセットアップ
         print(f'initialize finish. {devicename = }, {baudrate = }, {id = }, {timeout = }')
@@ -39,20 +42,30 @@ class ThreadUART(Thread):
         while True:
             data = self._ser.read_until(b'*')
             try:
+                # with self._lock:
+                # self._connect_from_temp, self._val1, self._val2, _ = str(data).split(',')
+                connect_from_temp, val1_temp, val2_temp, _ = str(data).split(',')
                 with self._lock:
-                    # self._connect_from_temp, self._val1, self._val2, _ = str(data).split(',')
-                    self._connect_from_temp, self._val1_temp, self._val2_temp, _ = str(data).split(',')
-                    
-                    self._val1 = int(self._val1_temp)
-                    self._val2 = int(self._val2_temp)
-                    self._connect_from_temp = self._connect_from_temp.lstrip("b'")
-                    self._connect_from = int(self._connect_from_temp)
+                    self._val1 = int(val1_temp)
+                    self._val2 = int(val2_temp)
+                    connect_from_temp = connect_from_temp.lstrip("b'")
+                    self._connect_from = int(connect_from_temp)
                     print(f'read success, {self._connect_from = }, {self._val1 = }, {self._val2 = }')
+                    # isrelayはこのクラスの呼び出し側が取得し、次のデバイスに回すため使用する
+                    # val1が0ならID0からのトレースが不可能
                     if self._val1 == 0:
                         self._isrelay = False
-                    elif self._val1 == 1 or self._val1 == 2:
+                        self._iscomplete = False
+                    # val1が1ならID0からトレース可能、2なら全デバイスが接続完了(つまりトレース可能)
+                    elif self._val1 == 1:
                         self._isrelay = True
+                        self._iscomplete = False
+                    elif self._val1 == 2:
+                        self._isrelay = True
+                        self._iscomplete = True
                     
+                    # resetコマンドはごくまれにしか飛ばないから多分上の判断と競合した不具合がどうのっていうのはそこまでないと思う...
+                    #NOTE 一応注意すること
                     if self._val1 == 3:
                         self._reset_cmd = True
                         self._reset_unsetIDs = self._val2
@@ -60,8 +73,14 @@ class ThreadUART(Thread):
             except:
                 with self._lock:
                     print('read failed')
+                    self._isrelay = False
                     self._connect_from = -1
             i += 1
+            
+            #TODO DEBUG POINT : DELETE THIS STATEMENT
+            if i > 20:
+                break
+            
             data = '' # clear data
             # print('executed {} times'.format(i))
             sleep(1)# 最高速で回してもあまり利点はなさそうなので指定秒ごとに実行
@@ -69,17 +88,14 @@ class ThreadUART(Thread):
 
     def async_write(self):
         # 無限ループで回す死活監視用のデータ送信機能。
-        # self._ser.write(b'msg')
         j = 0 
         while True:
-            # write_data = 5 #DEBUG
             # 送信するメッセージの組み立て
             with self._lock:
                 msg = ''
                 msg += '{},'.format(self._id) # MYID
-            
                 if self._iscomplete == True:
-                    msg += '2,'
+                    msg += '2,'# ID0からすべてのデバイスがつながっている
                 elif self._isrelay:
                     msg += '1,'# ID0からつながっている
                 else:
@@ -91,16 +107,37 @@ class ThreadUART(Thread):
             # print(f'{msg = }')
             self._ser.write(msg.encode())
             j += 1
+            
+            #TODO DEBUG POINT : DELETE THIS STATEMENT
+            if j > 20:
+                break
             sleep(0.9)
             
     def reset_command(self,val : int):
+        '''Send reset command to connected device
+        
+        command will send onece
+        
+        reset flag must be unflag by who this class called
+        
+        '''
         with self._lock:
             msg = ''
             msg += '{},'.format(self._id)
             msg += '3,' # リセットを行うよう指示
             msg += val # 0b1111111111111111で最初は実行される
             self._ser.write(msg.encode())
-            
+    
+    def initialize(self,id : int):
+        with self._lock:
+            self._connect_from = -1
+            self._val1 = 0
+            self._val2 = 0
+            self._id = id
+            self._iscomplete = False
+            self._isrelay = False
+            self._reset_cmd = False
+            self._reset_unsetIDs = 0b1111111111111111
     
     # Accessorたち
     def get_val1(self):
@@ -135,6 +172,7 @@ class ThreadUART(Thread):
         with self._lock:
             self._reset_cmd = False
 
+    # Override
     def run(self):
         read_task = Thread(target=self.async_read, args=[])
         write_task = Thread(target=self.async_write, args=[])
