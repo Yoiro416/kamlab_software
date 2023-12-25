@@ -50,19 +50,17 @@ class ThreadUART(Thread):
                     self._val2 = int(val2_temp)
                     connect_from_temp = connect_from_temp.lstrip("b'")
                     self._connect_from = int(connect_from_temp)
-                    print(f'read success, {self._connect_from = }, {self._val1 = }, {self._val2 = }')
+                    # print(f'read success, {self._connect_from = }, {self._val1 = }, {self._val2 = }')
                     # isrelayはこのクラスの呼び出し側が取得し、次のデバイスに回すため使用する
+                    # 不要、呼び出し側から制御する
                     # val1が0ならID0からのトレースが不可能
-                    if self._val1 == 0:
-                        self._isrelay = False
-                        self._iscomplete = False
-                    # val1が1ならID0からトレース可能、2なら全デバイスが接続完了(つまりトレース可能)
-                    elif self._val1 == 1:
-                        self._isrelay = True
-                        self._iscomplete = False
-                    elif self._val1 == 2:
-                        self._isrelay = True
-                        self._iscomplete = True
+                    # if self._val1 == 0:
+                    #     self._iscomplete = False
+                    # # val1が1ならID0からトレース可能、2なら全デバイスが接続完了(つまりトレース可能)
+                    # elif self._val1 == 1:
+                    #     self._isrelay = True
+                    # elif self._val1 == 2:
+                    #     self._isrelay = True
                     
                     # resetコマンドはごくまれにしか飛ばないから多分上の判断と競合した不具合がどうのっていうのはそこまでないと思う...
                     #NOTE 一応注意すること
@@ -74,16 +72,17 @@ class ThreadUART(Thread):
                 with self._lock:
                     print('read failed')
                     self._isrelay = False
+                    self._iscomplete = False
                     self._connect_from = -1
             i += 1
             
             #TODO DEBUG POINT : DELETE THIS STATEMENT
-            if i > 20:
-                break
+            # if i > 20:
+            #     break
             
             data = '' # clear data
             # print('executed {} times'.format(i))
-            sleep(1)# 最高速で回してもあまり利点はなさそうなので指定秒ごとに実行
+            sleep(0.4)# 最高速で回してもあまり利点はなさそうなので指定秒ごとに実行
 
 
     def async_write(self):
@@ -94,7 +93,7 @@ class ThreadUART(Thread):
             with self._lock:
                 msg = ''
                 msg += '{},'.format(self._id) # MYID
-                if self._iscomplete == True:
+                if self._iscomplete:
                     msg += '2,'# ID0からすべてのデバイスがつながっている
                 elif self._isrelay:
                     msg += '1,'# ID0からつながっている
@@ -109,9 +108,9 @@ class ThreadUART(Thread):
             j += 1
             
             #TODO DEBUG POINT : DELETE THIS STATEMENT
-            if j > 20:
-                break
-            sleep(0.9)
+            # if j > 20:
+            #     break
+            sleep(0.5)
             
     def reset_command(self,val : int):
         '''Send reset command to connected device

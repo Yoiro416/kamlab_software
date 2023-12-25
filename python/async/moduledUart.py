@@ -12,7 +12,7 @@ import time
 
 rate = 115200 # 共通
 t = 1 # 共通
-MYID = 1
+MYID = 0
 left = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15
 right = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO0,1
 top = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, id=MYID, timeout=t) # GPIO8,9
@@ -26,7 +26,7 @@ def main():
     right.start()
     top.start()
     bottom.start()
-    
+    indexer = 0
     while True:
         # fromはどのIDのデバイスから流れてきた信号かを判断する。表示関数で使用するほか、下記の制御でも自分のIDによって一つ読む
         # isrelayは隣のデバイスがデバイスID0のデバイスから正常に追跡できているかどうかを判別するために使用する。下記の制御で使用する
@@ -37,7 +37,15 @@ def main():
         t_from,t_isrelay,t_iscomplete,t_reset = top.get_state()
         b_from,b_isrelay,b_iscomplete,b_reset = bottom.get_state()
         
-        print('-----DEBUG MSG START-----\n')
+        #WARNING !!!!!!!
+        #HACK
+        #TODO 
+        #FOR DEBUG! DELETE THIS IS THE STAB!!!!!
+        if r_from == 0:
+            b_from = 8
+            b_isrelay = True
+        indexer += 1
+        print(f'-----DEBUG MSG START----- {indexer}\n')
         print(f'{l_from = }, {l_isrelay = }, {l_iscomplete = }, {l_reset = }')
         print(f'{r_from = }, {r_isrelay = }, {r_iscomplete = }, {r_reset = }')
         print(f'{t_from = }, {t_isrelay = }, {t_iscomplete = }, {t_reset = }')
@@ -180,7 +188,7 @@ def main():
             exit(1)
         #TODO 下段の制御を書く
         
-        time.sleep(5)
+        time.sleep(1)
 
 
 def show_window(id : int):
@@ -223,13 +231,6 @@ def reset_function(flag : int):
     print(f'stab - reset function. {flag}')
     return flag >> 1
 
-def controller():
-    #TODO 仮置きテスト->
-    print(f"\n==========\nREADING: {left.get_cmd() = }, {right.get_cmd() = }, {top.get_cmd() = }, {bottom.get_cmd() = }\n==========\n")
-# main側から各インスタンスにアクセスするのに使う
-# 競合を避けるためwith lockでアクセスできるアクセッサ―get_cmd()を使用する
-# こちらからアクセスする場合はこのようにgetterやsetterを使用すること。
-
 def initialize():
     '''initialize connectors
     
@@ -247,8 +248,6 @@ def initialize():
 if __name__ == '__main__':
     main_task = Thread(target=main,args=[],daemon=False)
     # main_taskが終了すると他のthreadも終了する
-    controller_task = Thread(target=controller,args=[],daemon=True)
     main_task.start()
-    time.sleep(3)
-    controller_task.start()
+
     
