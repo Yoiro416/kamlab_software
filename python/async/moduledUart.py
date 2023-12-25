@@ -41,9 +41,9 @@ def main():
         #HACK
         #TODO 
         #FOR DEBUG! DELETE THIS IS THE STAB!!!!!
-        if r_from == 0:
-            b_from = 8
-            b_isrelay = True
+        # if r_from == 0:
+        #     b_from = 8
+        #     b_isrelay = True
         indexer += 1
         print(f'-----DEBUG MSG START----- {indexer}\n')
         print(f'{l_from = }, {l_isrelay = }, {l_iscomplete = }, {l_reset = }')
