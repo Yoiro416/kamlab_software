@@ -37,10 +37,8 @@ def main():
         t_from,t_isrelay,t_iscomplete,t_reset = top.get_state()
         b_from,b_isrelay,b_iscomplete,b_reset = bottom.get_state()
         
-        #WARNING !!!!!!!
-        #HACK
-        #TODO 
-        #FOR DEBUG! DELETE THIS IS THE STAB!!!!!
+        
+        #FOR DEBUG! DELETE THIS : STAB!!!!!
         # if r_from == 0:
         #     b_from = 8
         #     b_isrelay = True
@@ -71,6 +69,13 @@ def main():
         elif 1 <= MYID and MYID <= 6 :
             # 上と右の接続をしているかは表示関数にのみ適応すればよさそう
             # どうせすべて正しく接続されているなら自分の一つ前しか見なくていいし
+            
+            #TODO 
+            # 一度だけリセットコマンドを送信すると読み取りタイミングなどの問題でその情報が落ちる可能性があるため、次のプロトコルを実装する
+            # まずID0のデバイスでリセットコマンドを受け付ける。リセットコマンドはval1に3をセットする事で表現する。
+            # コマンドを受け付けたデバイスは未使用のビットに設定されたIDを自身に割り付ける
+            # 次に、ID0から次のIDに対してリセットコマンドを一定時間送信する。長さは5秒とし、この間は次のリセットコマンドを受け付けないようフラッグを立てる
+            # リセットコマンドが送信されたデバイスは次のデバイスに同様に一定時間送信する。
             
             # 左からリセットの指示が飛んできた場合の処理
             if l_reset == True:
