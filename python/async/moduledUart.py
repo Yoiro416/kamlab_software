@@ -1,6 +1,7 @@
 import threadModule
 from threading import Thread,Timer
 import time
+import single
 
 # 各々が一つの辺(接続点)を担当する。
 # daemon = Trueで固定
