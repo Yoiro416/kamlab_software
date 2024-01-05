@@ -1,7 +1,7 @@
 import threadModule
 from threading import Thread,Timer
 import time
-import single
+import single.class_demosample_WIP
 
 # 各々が一つの辺(接続点)を担当する。
 # daemon = Trueで固定
@@ -21,16 +21,19 @@ top = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, id=MYID,
 bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA5', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13
 # このモジュールの役割はこれを束ねて動作を決定すること
 
+show_task = single.class_demosample_WIP.ClassShowImage()
+
 def main():
     # global変数とlocal変数のスコープの混同を阻止するため明示
+    # リセット処理を重複して処理しないようフラグを管理する
+    global can_reset
     global MYID
+    
     left.start()
     right.start()
     top.start()
     bottom.start()
-    
-    # リセット処理を重複して処理しないようフラグを管理する
-    global can_reset
+    show_task.start()
     
     indexer = 0
     while True:
@@ -66,8 +69,8 @@ def main():
                     right.set_complete(True) 
                 else:
                     right.set_complete(False)
-            # if [リセットコマンドがウィンドウ上で押されたら] and can_reset:
-            #    flag_bytes = 65535
+            if show_task.get_buttonstate() and can_reset:
+                flag_bytes = 65535
             #    flag_bytes = reset_function(flag_bytes)
             #TODO
             #    right.reset_command(flag_bytes)
