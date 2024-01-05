@@ -15,8 +15,6 @@ singefile = 'world2.jpg'
 #rotate後
 # center = (740,430)
 
-#TODO main関数でIDを決定している部分を、moduledUartから値を渡す形に変更する
-
 # 重複のない乱数を発生させる関数
 def rand_ints_nodup(a):
   ns = []
