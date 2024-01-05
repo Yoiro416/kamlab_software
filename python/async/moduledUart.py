@@ -1,5 +1,5 @@
 import threadModule
-from threading import Thread
+from threading import Thread,Timer
 import time
 
 # 各々が一つの辺(接続点)を担当する。
@@ -13,6 +13,7 @@ import time
 rate = 115200 # 共通
 t = 1 # 共通
 MYID = 0
+can_reset = True
 left = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15
 right = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO0,1
 top = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, id=MYID, timeout=t) # GPIO8,9
@@ -26,6 +27,10 @@ def main():
     right.start()
     top.start()
     bottom.start()
+    
+    # リセット処理を重複して処理しないようフラグを管理する
+    global can_reset
+    
     indexer = 0
     while True:
         # fromはどのIDのデバイスから流れてきた信号かを判断する。表示関数で使用するほか、下記の制御でも自分のIDによって一つ読む
@@ -60,7 +65,7 @@ def main():
                     right.set_complete(True) 
                 else:
                     right.set_complete(False)
-            # if [リセットコマンドがウィンドウ上で押されたら]:
+            # if [リセットコマンドがウィンドウ上で押されたら] and can_reset:
             #    flag_bytes = 65535
             #    flag_bytes = reset_function(flag_bytes)
             #TODO
@@ -78,7 +83,7 @@ def main():
             # リセットコマンドが送信されたデバイスは次のデバイスに同様に一定時間送信する。
             
             # 左からリセットの指示が飛んできた場合の処理
-            if l_reset == True:
+            if l_reset and can_reset:
                 flag_bytes = left.get_unsetIDs()
                 #TODO リセット処理を書く
                 #TODO flag_bytesから使用可能なビットを判断し選択、その後該当ビットを0にする
@@ -87,7 +92,7 @@ def main():
                 right.reset_command(flag_bytes)
                 # 指示を受けたコネクタに保持されたリセット指示のフラグを取り下げる
                 left.unflag_reset() 
-                # 表示や自身のIDなどを初期化して
+                # 表示や自身のIDなどを初期化する。can_resetフラグもここで設定する
                 initialize() 
                 # リセット後はループの先頭に戻り引き続き動作する
                 continue 
@@ -107,7 +112,7 @@ def main():
                 right.set_relay(False)
         
         if MYID == 7:
-            if l_reset == True:
+            if l_reset and can_reset:
                 flag_bytes = left.get_unsetIDs()
                 flag_bytes = reset_function(flag_bytes)
                 bottom.reset_command(flag_bytes)
@@ -130,30 +135,30 @@ def main():
         
         if MYID == 8:
             show_window()
-            if r_reset == True:
+            if r_reset and can_reset:
                 flag_bytes = right.get_unsetIDs()
                 flag_bytes = reset_function(flag_bytes)
                 # 最後だしわざわざ送り返さなくても大丈夫なはず
                 # top.reset_command(flag_bytes)
                 right.unflag_reset()
                 initialize()
+                continue
                 
             if r_from == (MYID + 1):
                 if r_isrelay == True:
                     top.set_relay(True)
                 else:
                     top.set_relay(False)
-                # わざわざID0に送り返す必要はなさそう
-                #NOTE 必要そうなら書く
             else:
                 top.set_complete(False)
         
         if 9 <= MYID and MYID <=14:
-            if r_reset == True:
+            if r_reset and can_reset:
                 flag_bytes = right.get_unsetIDs()
                 flag_bytes = reset_function(flag_bytes)
                 right.unflag_reset()
                 initialize()
+                continue
             
             if r_from == (MYID + 1):
                 if r_isrelay == True:
@@ -169,11 +174,12 @@ def main():
                 left.set_relay(False)
         
         if MYID == 15:
-            if t_reset == True:
+            if t_reset and can_reset:
                 flag_bytes = top.get_unsetIDs()
                 flag_bytes = reset_function(flag_bytes)
                 top.unflag_reset()
                 initialize()
+                continue
             
             if t_from == (MYID - 8):
                 if t_isrelay == True:
@@ -191,7 +197,6 @@ def main():
         if MYID >=16:
             print("UNDEFINED ID!")
             exit(1)
-        #TODO 下段の制御を書く
         
         time.sleep(1)
 
@@ -236,6 +241,10 @@ def reset_function(flag : int):
     print(f'stab - reset function. {flag}')
     return flag >> 1
 
+def unflag_canreset():
+    global can_reset
+    can_reset = False
+
 def initialize():
     '''initialize connectors
     
@@ -245,14 +254,18 @@ def initialize():
     
     '''
     global MYID
+    global can_reset
+    can_reset = False
     left.initialize(MYID)
     right.initialize(MYID)
     top.initialize(MYID)
     bottom.initialize(MYID)
+    t = Timer(10.0,unflag_canreset)
+    t.start()
 
 if __name__ == '__main__':
     main_task = Thread(target=main,args=[],daemon=False)
     # main_taskが終了すると他のthreadも終了する
     main_task.start()
-
+    
     

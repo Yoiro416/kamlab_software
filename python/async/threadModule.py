@@ -105,12 +105,17 @@ class ThreadUART(Thread):
         reset flag must be unflag by who this class called
         
         '''
-        with self._lock:
-            msg = ''
-            msg += '{},'.format(self._id)
-            msg += '3,' # リセットを行うよう指示
-            msg += val # 0b1111111111111111で最初は実行される
-            self._ser.write(msg.encode())
+        
+    
+    def reset_roop(self,val : int):
+        for i in range(50):
+            with self._lock:
+                msg = ''
+                msg += '{},'.format(self._id)
+                msg += '3,' # リセットを行うよう指示
+                msg += val # 0b1111111111111111で最初は実行される
+                self._ser.write(msg.encode())
+            sleep(0.1)
     
     def initialize(self,id : int):
         with self._lock:
