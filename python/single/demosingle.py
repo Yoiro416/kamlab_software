@@ -179,7 +179,8 @@ def show_image(i):#i : integer, 0<=i<=15
 
 
         # 画像を表示
-        cv2.setMouseCallback(window_name,click_pos,color)
+        #TODO openCVのバージョンが違うとうまく動かないようです
+        # cv2.setMouseCallback(window_name,click_pos,color)
         cv2.imshow(window_name, img_rotate)
         
         # 1秒ごとに更新
