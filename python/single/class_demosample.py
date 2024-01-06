@@ -55,8 +55,8 @@ def rand_ints_nodup(seed,a):
     return ns
     
 
-# UTCを決める関数
-def utctime(n):
+# UTCを決める関数(全体)
+def multi_utctime(n):
     if n == 0:
         return 0
     
@@ -97,6 +97,10 @@ def create_frame(filename,height,width,n1,n2,n3,n4):
     if n4 == False:
         cv2.line(filename, (width, height), (0, height), (0, 0, 255), thickness=15, lineType=cv2.LINE_AA)
         
+def multi_nowutctime (num):
+    utc = multi_utctime(num)
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=utc)))
+    return now
         
 #フルスクリーンにする関数  
 def imshow_fullscreen(winname):
@@ -143,10 +147,15 @@ def show_image(i):#i : integer, 0<=i<=15
             if x_point >= 710 and x_point <= 770:
                 y_point = int(mouseData.getY())
                 if y_point >= 400 and y_point <= 460:
-                    cv2.destroyAllWindows()
+                    # cv2.destroyAllWindows()
                     single()
                     
-        now = now_utctime(m1)
+            if x_point >= 30 and x_point <= 90:
+                y_point = int(mouseData.getY())
+                if y_point >= 400 and y_point <= 460:
+                    cv2.destroyAllWindows(img)
+                    
+        now = multi_nowutctime(m1)
 
         # 現在時刻を文字列に変換
         now_day = now.strftime('%Y/%m/%d')
@@ -158,6 +167,7 @@ def show_image(i):#i : integer, 0<=i<=15
         
         #ボタンのための丸
         cv2.circle(img_with_time, (430, 60), 30, (255, 255, 255), thickness=-1)
+        cv2.circle(img_with_time, (430, 740), 30, (0, 0, 255), thickness=-1)
         
         
         if now.second>=0 and now.second<30:
@@ -189,12 +199,10 @@ def show_image(i):#i : integer, 0<=i<=15
         
 
         # 'q'キーが押されたら終了
-        if key == ord('q'):
-            cv2.destroyAllWindows(img)
-            break
-    
-        
-        
+        # if key == ord('q'):
+        #     cv2.destroyAllWindows(img)
+        #     break
+     
     return 
 
 
@@ -210,8 +218,88 @@ def multiple():
 # 30
 #710,400,770,460
     
-def now_utctime (num):
-    utc = utctime(num)
+# UTCを決める関数(単体)
+def mono_utctime(x):
+    if x <= 36:
+        return -1
+    
+    elif x <= 71:
+        return 0
+    
+    elif x <= 104:
+        return 1
+    
+    elif x <= 137:
+        return 2
+    
+    elif x <= 171:
+        return 3
+    
+    elif x <= 204:
+        return 4
+    
+    elif x <= 237:
+        return 5
+    
+    elif x <= 272:
+        return 6
+    
+    elif x <= 304:
+        return 7
+    
+    elif x <= 337:
+        return 8
+    
+    elif x <= 370:
+        return 9
+    
+    elif x <= 403:
+        return 10
+    
+    elif x <= 435:
+        return 11
+    
+    elif x <= 452:
+        return 12
+    
+    elif x <= 470:
+        return -12
+    
+    elif x <= 488:
+        return -11
+    
+    elif x <= 522:
+        return -10
+    
+    elif x <= 555:
+        return -9
+    
+    elif x <= 588:
+        return -8
+    
+    elif x <= 620:
+        return -7
+    
+    elif x <= 654:
+        return -6
+    
+    elif x <= 677:
+        return -5
+    
+    elif x <= 722:
+        return -4
+    
+    elif x <= 754:
+        return -3
+    
+    elif x <= 800:
+        return -2
+    
+    
+    
+        
+def mono_nowutctime (num):
+    utc = mono_utctime(num)
     now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=utc)))
     return now
 
@@ -219,7 +307,7 @@ def now_utctime (num):
 def single():
     
     #表示するWindow名
-    window_name = "input window"
+    window = "img_with_time"
     # mouse_click = mouseParam(window_name)
     # path = "image/world.jpg"
     path = "image/world.jpg"
@@ -228,10 +316,10 @@ def single():
     read = cv2.imread(path)
     
     #画像の表示
-    cv2.imshow(window_name, read)
+    cv2.imshow(window, read)
     
     #コールバックの設定
-    mouseData = mouseParam(window_name)
+    mouseData = mouseParam(window)
     
     x_point = 350
     while True:
@@ -241,33 +329,39 @@ def single():
         #左クリックがあったら表示
         if mouseData.getEvent() == cv2.EVENT_LBUTTONDOWN:
             x_point = int(mouseData.getX())
-            print(mouseData.getX())
+            # print(mouseData.getX())
             if x_point >= 710 and x_point <= 770:
                 y_point = int(mouseData.getY())
                 if y_point >= 400 and y_point <= 460:
-                    cv2.destroyAllWindows()
+                    # cv2.destroyAllWindows()
                     multiple()
+                
+            if x_point >= 30 and x_point <= 90:
+                y_point = int(mouseData.getY())
+                if y_point >= 400 and y_point <= 460:
+                    cv2.destroyAllWindows(img)
                 
         
         #710,400,770,460
-        now = now_utctime(x_point//100)
+        now = mono_nowutctime(x_point)
         # 現在時刻を文字列に変換
         now_day = now.strftime('%Y/%m/%d')
         now_time = now.strftime('%H:%M:%S')
         
         # 画像に現在時刻を描画
         cv2.putText(img, now_day, (10, 35), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.putText(img, now_time, (55, 400), cv2.FONT_HERSHEY_SIMPLEX, 2.5, (255, 255, 255), 6, cv2.LINE_AA)
-        cv2.circle(img, (740, 430), 30, (255, 255, 255), thickness=-1)
+        cv2.putText(img, now_time, (55, 300), cv2.FONT_HERSHEY_SIMPLEX, 2.5, (255, 255, 255), 6, cv2.LINE_AA)
+        cv2.circle(img, (740, 430), 30, (0, 0, 0), thickness=-1)
+        cv2.circle(img, (60, 430), 30, (0, 0, 255), thickness=-1)
         # 画像を表示
-        cv2.imshow(window_name, img)
+        cv2.imshow(window, img)
         # 1秒ごとに更新
         key = cv2.waitKey(20)        
 
         # 'q'キーが押されたら終了
-        if key == ord('q'):
-            cv2.destroyAllWindows(img)
-            break
+        # if key == ord('q'):
+        #     cv2.destroyAllWindows(img)
+        #     break
         
             
     cv2.destroyAllWindows()
