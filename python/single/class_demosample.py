@@ -97,6 +97,11 @@ def create_frame(filename,height,width,n1,n2,n3,n4):
     if n4 == False:
         cv2.line(filename, (width, height), (0, height), (0, 0, 255), thickness=15, lineType=cv2.LINE_AA)
         
+        
+#フルスクリーンにする関数  
+def imshow_fullscreen(winname):
+    cv2.namedWindow(winname,cv2.WINDOW_NORMAL)
+    cv2.setWindowProperty(winname,cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
 
 def show_image(i):#i : integer, 0<=i<=15
     # iに応じて表示する
@@ -177,7 +182,7 @@ def show_image(i):#i : integer, 0<=i<=15
         # 画像を表示
         cv2.imshow(window, img_rotate)
         
-        # imshow_fullscreen('Image with time', img_rotate)
+        imshow_fullscreen('Image with time')
 
         # 1秒ごとに更新
         key = cv2.waitKey(20)
