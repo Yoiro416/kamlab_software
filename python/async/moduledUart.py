@@ -88,11 +88,11 @@ def main():
             
             # 左からリセットの指示が飛んできた場合の処理
             if l_reset and can_reset:
+                # 未使用のIDを取得
                 flag_bytes = left.get_unsetIDs()
-                #TODO リセット処理を書く
-                #TODO flag_bytesから使用可能なビットを判断し選択、その後該当ビットを0にする
+                #TODO リセット処理をここに
                 flag_bytes,MYID = reset_function(flag_bytes)
-                # で、そのあとリセットコマンドを右側(次のデバイス)に流す
+                # リセットコマンドを右側(次のデバイス)に流す
                 right.reset_command(flag_bytes)
                 # 指示を受けたコネクタに保持されたリセット指示のフラグを取り下げる
                 left.unflag_reset() 

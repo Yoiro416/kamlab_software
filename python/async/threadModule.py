@@ -30,6 +30,7 @@ class ThreadUART(Thread):
         self._connect_from = -1
         self._reset_cmd = False
         self._reset_unsetIDs = 0b1111111111111111 # 16bit
+        self._send_reset = False
         
         
         ## デバッグメッセージ&通信のセットアップ
@@ -81,20 +82,23 @@ class ThreadUART(Thread):
             with self._lock:
                 msg = ''
                 msg += '{},'.format(self._id) # MYID
-                if self._iscomplete:
+                if self._send_reset:
+                    msg += '3,'# リセットコマンドは最優先で処理
+                    msg += str(self._unsetflags)
+                    msg += ',*'
+                elif self._iscomplete:
                     msg += '2,'# ID0からすべてのデバイスがつながっている
+                    msg += '0,*' # dummy
                 elif self._isrelay:
                     msg += '1,'# ID0からつながっている
+                    msg += '0,*' # dummy
                 else:
                     msg += '0,'# ID0からつながっていない
-            
-                msg += '0,*' # dummy
+                    msg += '0,*' # dummy
+                
             self._ser.write(msg.encode())
             j += 1
             
-            #TODO DEBUG POINT : DELETE THIS STATEMENT
-            # if j > 20:
-            #     break
             sleep(0.5)
             
     def reset_command(self,val : int):
@@ -105,6 +109,10 @@ class ThreadUART(Thread):
         reset flag must be unflag by who this class called
         
         '''
+        with self._lock:
+            self._send_reset = True
+            self._unsetflags = val
+        #TODO 指定時間後にこのフラグを取り下げるコードを用意する
         
     
     def reset_roop(self,val : int):
