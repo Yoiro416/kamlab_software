@@ -31,6 +31,7 @@ class ThreadUART(Thread):
         self._reset_cmd = False
         self._reset_unsetIDs = 0b1111111111111111 # 16bit
         self._send_reset = False
+        self._send_reset = False
         
         
         ## デバッグメッセージ&通信のセットアップ
@@ -91,8 +92,10 @@ class ThreadUART(Thread):
                 elif self._iscomplete:
                     msg += '2,'# ID0からすべてのデバイスがつながっている
                     msg += '0,*' # dummy
+                    msg += '0,*' # dummy
                 elif self._isrelay:
                     msg += '1,'# ID0からつながっている
+                    msg += '0,*' # dummy
                     msg += '0,*' # dummy
                 else:
                     msg += '0,'# ID0からつながっていない
@@ -113,6 +116,10 @@ class ThreadUART(Thread):
         reset flag must be unflag by who this class called
         
         '''
+        with self._lock:
+            self._send_reset = True
+            self._unsetflags = val
+        #TODO 指定時間後にこのフラグを取り下げるコードを用意する
         
         # 重複処理予防
         if self._send_reset == True:

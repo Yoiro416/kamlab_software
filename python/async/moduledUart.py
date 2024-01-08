@@ -90,6 +90,7 @@ def main():
             # 左からリセットの指示が飛んできた場合の処理
             if l_reset and can_reset:
                 # 未使用のIDを取得
+                # 未使用のIDを取得
                 flag_bytes = left.get_unsetIDs()
                 #TODO リセット処理をここに
                 MYID, left_id = decide_id(flag_bytes)
@@ -240,4 +241,5 @@ def initialize():
 if __name__ == '__main__':
     main_task = Thread(target=main,args=[],daemon=False)
     # main_taskが終了すると他のthreadも終了する
+    main_task.start()
     main_task.start()
