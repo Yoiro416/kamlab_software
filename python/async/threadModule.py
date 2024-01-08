@@ -21,7 +21,6 @@ class ThreadUART(Thread):
         
         self._lock = Lock()
         # self.initialize(id = id)
-        ## この辺をまとめてinitialize関数に入れ込んだ。多分エラーは吐かないと思うけど何かあれば元に戻すように
         self._isrelay = relay # 自分
         self._id = id
         self._val1 = 0
@@ -44,8 +43,6 @@ class ThreadUART(Thread):
         while True:
             data = self._ser.read_until(b'*')
             try:
-                # with self._lock:
-                # self._connect_from_temp, self._val1, self._val2, _ = str(data).split(',')
                 connect_from_temp, val1_temp, val2_temp, _ = str(data).split(',')
                 with self._lock:
                     self._val1 = int(val1_temp)
@@ -65,10 +62,6 @@ class ThreadUART(Thread):
                     self._iscomplete = False
                     self._connect_from = -1
             i += 1
-            
-            #TODO DEBUG POINT : DELETE THIS STATEMENT
-            # if i > 20:
-            #     break
             
             data = '' # clear data
             # print('executed {} times'.format(i))
@@ -111,9 +104,9 @@ class ThreadUART(Thread):
     def reset_command(self,val : int):
         '''Send reset command to connected device
         
-        command will send onece
+        command will be sent for about 5 seconds
         
-        reset flag must be unflag by who this class called
+        reset flag will be unflaged after 5 secs.
         
         '''
         with self._lock:
@@ -121,7 +114,7 @@ class ThreadUART(Thread):
             self._unsetflags = val
         #TODO 指定時間後にこのフラグを取り下げるコードを用意する
         
-        # 重複処理予防
+        # 重複処理予防: もしリセットコマンド送信中に新しくこの関数が実行された場合、即座にreturnする
         if self._send_reset == True:
             return 
         
