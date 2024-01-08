@@ -2,6 +2,7 @@ import threadModule
 from threading import Thread,Timer
 import time
 import single.class_demosample_WIP
+from id import decide_id
 
 # 各々が一つの辺(接続点)を担当する。
 # daemon = Trueで固定
@@ -70,10 +71,10 @@ def main():
                 else:
                     right.set_complete(False)
             if show_task.get_buttonstate() and can_reset:
+                show_task.set_buttonstate(False)
                 flag_bytes = 65535
-            #    flag_bytes = reset_function(flag_bytes)
-            #TODO
-            #    right.reset_command(flag_bytes)
+                MYID, left_id = decide_id(flag_bytes)
+                right.reset_command(left_id) # ここまで終わってる
 
         elif 1 <= MYID and MYID <= 6 :
             # 上と右の接続をしているかは表示関数にのみ適応すればよさそう
@@ -91,15 +92,15 @@ def main():
                 # 未使用のIDを取得
                 flag_bytes = left.get_unsetIDs()
                 #TODO リセット処理をここに
-                flag_bytes,MYID = reset_function(flag_bytes)
+                MYID, left_id = decide_id(flag_bytes)
                 # リセットコマンドを右側(次のデバイス)に流す
-                right.reset_command(flag_bytes)
-                # 指示を受けたコネクタに保持されたリセット指示のフラグを取り下げる
-                left.unflag_reset() 
+                right.reset_command(left_id)
                 # 表示や自身のIDなどを初期化する。can_resetフラグもここで設定する
                 initialize() 
                 # リセット後はループの先頭に戻り引き続き動作する
-                continue 
+            
+            # 指示を受けたコネクタに保持されたリセット指示のフラグを取り下げる
+            left.unflag_reset() 
             
             # MYID1~6なら、自分の左からリレーされてくる信号があれば正しく自分までID0のデバイスと接続されている
             if l_from == (MYID-1):
@@ -118,11 +119,10 @@ def main():
         if MYID == 7:
             if l_reset and can_reset:
                 flag_bytes = left.get_unsetIDs()
-                flag_bytes = reset_function(flag_bytes)
-                bottom.reset_command(flag_bytes)
-                left.unflag_reset()
+                MYID, left_id = decide_id(flag_bytes)
+                bottom.reset_command(left_id)
                 initialize()
-                continue
+            left.unflag_reset()
             
             if l_from == (MYID - 1):
                 if l_isrelay == True:
@@ -141,12 +141,11 @@ def main():
             show_window()
             if r_reset and can_reset:
                 flag_bytes = right.get_unsetIDs()
-                flag_bytes = reset_function(flag_bytes)
+                MYID, left_id = decide_id(flag_bytes)
                 # 最後だしわざわざ送り返さなくても大丈夫なはず
-                # top.reset_command(flag_bytes)
-                right.unflag_reset()
+                # top.reset_command(left_id)
                 initialize()
-                continue
+            right.unflag_reset()
                 
             if r_from == (MYID + 1):
                 if r_isrelay == True:
@@ -159,10 +158,9 @@ def main():
         if 9 <= MYID and MYID <=14:
             if r_reset and can_reset:
                 flag_bytes = right.get_unsetIDs()
-                flag_bytes = reset_function(flag_bytes)
-                right.unflag_reset()
+                MYID, left_id = decide_id(flag_bytes)
                 initialize()
-                continue
+            right.unflag_reset()
             
             if r_from == (MYID + 1):
                 if r_isrelay == True:
@@ -180,10 +178,9 @@ def main():
         if MYID == 15:
             if t_reset and can_reset:
                 flag_bytes = top.get_unsetIDs()
-                flag_bytes = reset_function(flag_bytes)
-                top.unflag_reset()
+                MYID, left_id = decide_id(flag_bytes)
                 initialize()
-                continue
+            top.unflag_reset()
             
             if t_from == (MYID - 8):
                 if t_isrelay == True:
@@ -217,33 +214,6 @@ def show_window(id : int):
     # 接続しているデバイスのIDが正しいかどうかもここで判断する。上で判断してもいいかもしれないがコードがあまりにも煩雑になると判断
     print(f'stab - show window {id}')
 
-def reset_function(flag : int):
-    '''This function is a Stab : reset MYID
-    
-    choose MYID from unused number in the flag
-    
-    then, unflag flag bit that this function choosed
-    
-    return the flag
-    
-    '''
-    # 最初の段階はどのデバイスがどのIDか把握できないので、自身のIDをベースとして転送先を決めるというよりも
-    # flagのbitのうち有効なものを数え上げて転送先を決定したほうがよさそう???
-    # 10個以上残っていれば、自分が一つ使用したうえでこれを右に転送する
-    # 9個残っていれば、自分が一つ使用して残り8個、これを下に送信すればよい
-    # 8個以上残っていれば、自分が一つ使用したうえでこれを左に転送する
-    '''こんな感じ?
-    searcher = 0b1
-    count = 0
-    for i in range(16):
-        if flag & searcher == 1:
-            count += 1
-        searcher = searcher << 1
-    '''
-    global MYID
-    MYID = 100
-    print(f'stab - reset function. {flag}')
-    return flag >> 1
 
 def unflag_canreset():
     global can_reset
@@ -271,5 +241,3 @@ if __name__ == '__main__':
     main_task = Thread(target=main,args=[],daemon=False)
     # main_taskが終了すると他のthreadも終了する
     main_task.start()
-    
-    

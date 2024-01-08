@@ -3,8 +3,6 @@ import datetime
 import random
 from threading import Thread,Lock
 
-#TODO これ別のファイルに移せば状態を保持するクラスとしない関数に分離できて便利なんだけど...やってみるか
-# あとクラス化した意味もなくなるので元のまま使える
 class mouseParam:
     def __init__(self, input_img_name):
         #マウス入力用のパラメータ

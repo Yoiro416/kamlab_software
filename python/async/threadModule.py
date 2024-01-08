@@ -82,10 +82,12 @@ class ThreadUART(Thread):
             with self._lock:
                 msg = ''
                 msg += '{},'.format(self._id) # MYID
+                
                 if self._send_reset:
                     msg += '3,'# リセットコマンドは最優先で処理
                     msg += str(self._unsetflags)
                     msg += ',*'
+                    j += 1
                 elif self._iscomplete:
                     msg += '2,'# ID0からすべてのデバイスがつながっている
                     msg += '0,*' # dummy
@@ -95,11 +97,13 @@ class ThreadUART(Thread):
                 else:
                     msg += '0,'# ID0からつながっていない
                     msg += '0,*' # dummy
-                
             self._ser.write(msg.encode())
-            j += 1
             
-            sleep(0.5)
+            # リセットコマンド送信は一定時間で取り下げられる。(約5秒を想定)
+            if j >= 50:
+                j = 0
+                self._send_reset = False
+            sleep(0.1)
             
     def reset_command(self,val : int):
         '''Send reset command to connected device
@@ -109,21 +113,14 @@ class ThreadUART(Thread):
         reset flag must be unflag by who this class called
         
         '''
+        
+        # 重複処理予防
+        if self._send_reset == True:
+            return 
+        
         with self._lock:
             self._send_reset = True
             self._unsetflags = val
-        #TODO 指定時間後にこのフラグを取り下げるコードを用意する
-        
-    
-    def reset_roop(self,val : int):
-        for i in range(50):
-            with self._lock:
-                msg = ''
-                msg += '{},'.format(self._id)
-                msg += '3,' # リセットを行うよう指示
-                msg += val # 0b1111111111111111で最初は実行される
-                self._ser.write(msg.encode())
-            sleep(0.1)
     
     def initialize(self,id : int):
         with self._lock:
