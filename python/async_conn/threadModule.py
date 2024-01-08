@@ -11,6 +11,8 @@ val1 : 0でID0とは切り離されており、1でdevice ID 0からつながっ
 val2 : 16bitデータ。ランダムなID割り振りに使う。val1が2以外の時は0(まあ何でもいいけど軽量な値)
 '''
 
+# CV2のセットアップがうまく行かない。pip freezeを用いてpyにインストールされているモジュールの確認を行うこと
+
 
 class ThreadUART(Thread):
     
@@ -51,10 +53,13 @@ class ThreadUART(Thread):
                     self._connect_from = int(connect_from_temp)
                     # print(f'read success, {self._connect_from = }, {self._val1 = }, {self._val2 = }')
                     
-                    if self._val1 == 3:
+                    if self._val1 == 3 and self._id != self._connect_from:
                         self._reset_cmd = True
                         self._reset_unsetIDs = self._val2
                         # else句を用いてこのコマンドの自動削除は行わない。このクラスの呼び出し側でしかるべき処理が行われたのち、その呼び出し側の責任でフラグをクリアする。
+                        # 自分のリセットコマンドを拾わないように、リセットコマンドの送信元が自分であった場合はリセットコマンドを建てる処理を拒否する
+                    # if self._val1 == 3 and self._id == self._connect_from:
+                    #     print("process rejected")
             except:
                 with self._lock:
                     print('read failed')
@@ -65,8 +70,7 @@ class ThreadUART(Thread):
             
             data = '' # clear data
             # print('executed {} times'.format(i))
-            sleep(0.4)# 最高速で回してもあまり利点はなさそうなので指定秒ごとに実行
-
+            sleep(0.2)
 
     def async_write(self):
         # 無限ループで回す死活監視用のデータ送信機能。
@@ -75,8 +79,7 @@ class ThreadUART(Thread):
             # 送信するメッセージの組み立て
             with self._lock:
                 msg = ''
-                msg += '{},'.format(self._id) # MYID
-                
+                msg += '{},'.format(self._id) # MYID                
                 if self._send_reset:
                     msg += '3,'# リセットコマンドは最優先で処理
                     msg += str(self._unsetflags)
@@ -85,21 +88,22 @@ class ThreadUART(Thread):
                 elif self._iscomplete:
                     msg += '2,'# ID0からすべてのデバイスがつながっている
                     msg += '0,*' # dummy
-                    msg += '0,*' # dummy
                 elif self._isrelay:
                     msg += '1,'# ID0からつながっている
-                    msg += '0,*' # dummy
                     msg += '0,*' # dummy
                 else:
                     msg += '0,'# ID0からつながっていない
                     msg += '0,*' # dummy
-            self._ser.write(msg.encode())
+                self._ser.write(msg.encode())
             
-            # リセットコマンド送信は一定時間で取り下げられる。(約5秒を想定)
-            if j >= 50:
-                j = 0
-                self._send_reset = False
-            sleep(0.1)
+                # リセットコマンド送信は一定時間で取り下げられる。
+                if self._send_reset:
+                    j += 1
+                    print(j)
+                    if j >= 10:
+                        self._send_reset = False
+                        j = 0
+            sleep(0.2)
             
     def reset_command(self,val : int):
         '''Send reset command to connected device

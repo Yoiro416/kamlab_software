@@ -1,8 +1,8 @@
-import threadModule
+from async_conn import threadModule
 from threading import Thread,Timer
 import time
-import single.class_demosample_WIP
-from id import decide_id
+from single import class_demosample_WIP
+from id.decide_id import decide_id
 
 # 各々が一つの辺(接続点)を担当する。
 # daemon = Trueで固定
@@ -22,7 +22,7 @@ top = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, id=MYID,
 bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA5', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13
 # このモジュールの役割はこれを束ねて動作を決定すること
 
-show_task = single.class_demosample_WIP.ClassShowImage()
+show_task = class_demosample_WIP.ClassShowImage(MYID)
 
 def main():
     # global変数とlocal変数のスコープの混同を阻止するため明示
@@ -58,9 +58,9 @@ def main():
         print(f'{r_from = }, {r_isrelay = }, {r_iscomplete = }, {r_reset = }')
         print(f'{t_from = }, {t_isrelay = }, {t_iscomplete = }, {t_reset = }')
         print(f'{b_from = }, {b_isrelay = }, {b_iscomplete = }, {b_reset = }')
+        # print(f'{can_reset = }')
         print('\n-----DEBUG MSG END------\n')
 
-        show_window(MYID)
         if MYID == 0:
             # 自分のIDが1の場合は、常に右側のデバイスに対して0から接続していることを通知する。
             right.set_relay(True) 
@@ -70,11 +70,15 @@ def main():
                     right.set_complete(True) 
                 else:
                     right.set_complete(False)
-            if show_task.get_buttonstate() and can_reset:
+            # if show_task.get_buttonstate() and can_reset:
+            if indexer == 3:
                 show_task.set_buttonstate(False)
                 flag_bytes = 65535
                 MYID, left_id = decide_id(flag_bytes)
-                right.reset_command(left_id) # ここまで終わってる
+                print(MYID)
+                # print(left_id)
+                right.reset_command(left_id) 
+                initialize()
 
         elif 1 <= MYID and MYID <= 6 :
             # 上と右の接続をしているかは表示関数にのみ適応すればよさそう
@@ -139,7 +143,6 @@ def main():
                 bottom.set_relay(False)
         
         if MYID == 8:
-            show_window()
             if r_reset and can_reset:
                 flag_bytes = right.get_unsetIDs()
                 MYID, left_id = decide_id(flag_bytes)
@@ -201,6 +204,7 @@ def main():
             exit(1)
         
         time.sleep(1)
+        print(f'{MYID = }')
 
 
 def show_window(id : int):
@@ -219,6 +223,7 @@ def show_window(id : int):
 def unflag_canreset():
     global can_reset
     can_reset = False
+    print("unflag can_reset")
 
 def initialize():
     '''initialize connectors
@@ -241,5 +246,4 @@ def initialize():
 if __name__ == '__main__':
     main_task = Thread(target=main,args=[],daemon=False)
     # main_taskが終了すると他のthreadも終了する
-    main_task.start()
     main_task.start()

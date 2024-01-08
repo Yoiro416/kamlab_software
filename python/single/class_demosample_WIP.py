@@ -132,12 +132,12 @@ class ClassShowImage(Thread):
         
         path = "image/" + filename
         img = cv2.imread(path)
-        
+        img_with_time = img.copy()
         
         height, width = img.shape[:2]
         
         img_r = cv2.rotate(img,cv2.ROTATE_90_CLOCKWISE)
-        cv2.imshow(window, img_r)
+        # cv2.imshow(window, img_r)
         
         #コールバックの設定
         mouseData = mouseParam(window)
