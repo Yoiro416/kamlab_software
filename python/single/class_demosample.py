@@ -2,6 +2,8 @@ import cv2
 import datetime
 import random
 
+# 0:単体、1:全体、-1:終了
+flag = 1
 
 class mouseParam:
     def __init__(self, input_img_name):
@@ -108,6 +110,7 @@ def imshow_fullscreen(winname):
     cv2.setWindowProperty(winname,cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
 
 def show_image(i):#i : integer, 0<=i<=15
+    global flag
     # iに応じて表示する
     m1 = i%8
     m2 = i//8
@@ -121,6 +124,8 @@ def show_image(i):#i : integer, 0<=i<=15
     
     path = "image/" + filename
     img = cv2.imread(path)
+    
+    imshow_fullscreen(window)
     
     
     height, width = img.shape[:2]
@@ -147,13 +152,14 @@ def show_image(i):#i : integer, 0<=i<=15
             if x_point >= 710 and x_point <= 770:
                 y_point = int(mouseData.getY())
                 if y_point >= 400 and y_point <= 460:
-                    # cv2.destroyAllWindows()
-                    single()
+                    flag = 0
+                    break
                     
             if x_point >= 30 and x_point <= 90:
                 y_point = int(mouseData.getY())
                 if y_point >= 400 and y_point <= 460:
-                    cv2.destroyAllWindows(img)
+                    flag = -1
+                    break
                     
         now = multi_nowutctime(m1)
 
@@ -192,18 +198,14 @@ def show_image(i):#i : integer, 0<=i<=15
         # 画像を表示
         cv2.imshow(window, img_rotate)
         
-        imshow_fullscreen('Image with time')
 
         # 1秒ごとに更新
         key = cv2.waitKey(20)
         
 
-        # 'q'キーが押されたら終了
-        # if key == ord('q'):
-        #     cv2.destroyAllWindows(img)
-        #     break
+    
      
-    return 
+    return flag
 
 
 def multiple():
@@ -306,10 +308,10 @@ def mono_nowutctime (num):
 
 def single():
     
+    global flag
+    
     #表示するWindow名
     window = "img_with_time"
-    # mouse_click = mouseParam(window_name)
-    # path = "image/world.jpg"
     path = "image/world.jpg"
     
     #入力画像
@@ -323,8 +325,7 @@ def single():
     
     x_point = 350
     while True:
-        # #コールバックの設定
-        # mouseData = mouseParam(window_name)
+
         img = read.copy()
         #左クリックがあったら表示
         if mouseData.getEvent() == cv2.EVENT_LBUTTONDOWN:
@@ -333,13 +334,15 @@ def single():
             if x_point >= 710 and x_point <= 770:
                 y_point = int(mouseData.getY())
                 if y_point >= 400 and y_point <= 460:
-                    # cv2.destroyAllWindows()
-                    multiple()
+                    flag = 1
+                    break
+                    
                 
             if x_point >= 30 and x_point <= 90:
                 y_point = int(mouseData.getY())
                 if y_point >= 400 and y_point <= 460:
-                    cv2.destroyAllWindows(img)
+                    flag = -1
+                    break
                 
         
         #710,400,770,460
@@ -358,18 +361,23 @@ def single():
         # 1秒ごとに更新
         key = cv2.waitKey(20)        
 
-        # 'q'キーが押されたら終了
-        # if key == ord('q'):
-        #     cv2.destroyAllWindows(img)
-        #     break
         
-            
-    cv2.destroyAllWindows()
+    return flag
 
 
 def main():
     
-    multiple()
+    global flag
+    
+    while flag != -1:
+        if flag == 1:
+            multiple()
+    
+        elif flag == 0:
+            single()
+        
+    
+    cv2.destroyAllWindows()
     # single()
     
 
