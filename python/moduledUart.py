@@ -12,15 +12,32 @@ from id.decide_id import decide_id
 8  9  10 11 12 13 14 15
 '''
 
+''' ハードウェア要件を確認するのに役立つコマンドたち
+$ sudo raspi-config
+    ttyAMA0の有効化に便利
+$ dtoverlay -h uart0
+    uart0のピン情報などの確認が可能。uart1,2などについても同様に確認可能
+$ pinout
+    GPIOの配置を確認可能
+'''
+
 rate = 115200 # 共通
 t = 1 # 共通
 MYID = 0
 can_reset = True
+
+# left = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15
+# right = threadModule.ThreadUART(devicename='/dev/ttyAMA1', baudrate=rate, id=MYID, timeout=t) # GPIO0,1
+# top = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO8,9
+# bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA3', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13
+# 特別な場合を除き、以下のコードでではなく上記のコードで通信用のオブジェクトを生成してください
 left = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15
 right = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO0,1
 top = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, id=MYID, timeout=t) # GPIO8,9
 bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA5', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13
-# このモジュールの役割はこれを束ねて動作を決定すること
+# BCM2711チップセットを使用している環境と、BCM2835チップセット
+# を使用する環境ではデバイスに割り振られる名前やdtoverlay関係に微妙に差がある
+# BCM2835用のコードが上で、2711が下です。
 
 show_task = class_demosample_WIP.ClassShowImage(MYID)
 
@@ -71,7 +88,7 @@ def main():
                 else:
                     right.set_complete(False)
             # if show_task.get_buttonstate() and can_reset:
-            if indexer == 3:
+            if indexer == 8:
                 show_task.set_buttonstate(False)
                 flag_bytes = 65535
                 MYID, left_id = decide_id(flag_bytes)

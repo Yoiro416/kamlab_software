@@ -62,7 +62,7 @@ class ThreadUART(Thread):
                     #     print("process rejected")
             except:
                 with self._lock:
-                    print('read failed')
+                    # print('read failed')
                     self._isrelay = False
                     self._iscomplete = False
                     self._connect_from = -1
@@ -84,7 +84,11 @@ class ThreadUART(Thread):
                     msg += '3,'# リセットコマンドは最優先で処理
                     msg += str(self._unsetflags)
                     msg += ',*'
-                    j += 1
+                    print(msg)
+                    j += 1 
+                    if j >= 20:
+                        self._send_reset = False
+                        j = 0
                 elif self._iscomplete:
                     msg += '2,'# ID0からすべてのデバイスがつながっている
                     msg += '0,*' # dummy
@@ -95,15 +99,6 @@ class ThreadUART(Thread):
                     msg += '0,'# ID0からつながっていない
                     msg += '0,*' # dummy
                 self._ser.write(msg.encode())
-            
-                # リセットコマンド送信は一定時間で取り下げられる。
-                if self._send_reset:
-                    j += 1
-                    print(j)
-                    if j >= 20:
-                        self._send_reset = False
-                        j = 0
-                        print("reset command end")
             sleep(0.2)
             
     def reset_command(self,val : int):
@@ -114,10 +109,6 @@ class ThreadUART(Thread):
         reset flag will be unflaged after 5 secs.
         
         '''
-        with self._lock:
-            self._send_reset = True
-            self._unsetflags = val
-        #TODO 指定時間後にこのフラグを取り下げるコードを用意する
         
         # 重複処理予防: もしリセットコマンド送信中に新しくこの関数が実行された場合、即座にreturnする
         if self._send_reset == True:
