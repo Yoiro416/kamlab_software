@@ -119,7 +119,6 @@ class ClassShowImage(Thread):
 
     def show_image(self,i):#i : integer, 0<=i<=15
         # iに応じて表示する
-        #TODO IDの割り振り方的に不具合起きそう。適宜修正する
         m1 = i%8
         m2 = i//8
         
@@ -130,7 +129,8 @@ class ClassShowImage(Thread):
         #表示するWindow名
         window = "img_with_time"
         
-        path = "image/" + filename
+        path = "single/image/" + filename
+        print(f'filename : {path = }')
         img = cv2.imread(path)
         img_with_time = img.copy()
         
@@ -208,9 +208,6 @@ class ClassShowImage(Thread):
             if key == ord('q'):
                 cv2.destroyAllWindows(img)
                 break
-        
-            
-            
         return 
 
 
@@ -219,7 +216,7 @@ class ClassShowImage(Thread):
         # seed = random.random()
         # list = self.rand_ints_nodup(seed,16)
         # print(list)
-        self.show_image(self._deviceID)
+        self.show_image(0)
 
     #単体機能
     #740,430

@@ -223,6 +223,11 @@ def show_window(id : int):
 def unflag_canreset():
     global can_reset
     can_reset = False
+    left.set_can_reset(True)
+    right.set_can_reset(True)
+    bottom.set_can_reset(True)
+    top.set_can_reset(True)
+
     print("unflag can_reset")
 
 def initialize():

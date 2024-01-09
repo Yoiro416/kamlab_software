@@ -32,8 +32,7 @@ class ThreadUART(Thread):
         self._reset_cmd = False
         self._reset_unsetIDs = 0b1111111111111111 # 16bit
         self._send_reset = False
-        self._send_reset = False
-        
+        self._can_reset = True        
         
         ## デバッグメッセージ&通信のセットアップ
         print(f'initialize finish. {devicename = }, {baudrate = }, {id = }, {timeout = }')
@@ -53,8 +52,9 @@ class ThreadUART(Thread):
                     self._connect_from = int(connect_from_temp)
                     # print(f'read success, {self._connect_from = }, {self._val1 = }, {self._val2 = }')
                     
-                    if self._val1 == 3 and self._id != self._connect_from:
+                    if self._val1 == 3 and self._can_reset:
                         self._reset_cmd = True
+                        self._can_reset = False
                         self._reset_unsetIDs = self._val2
                         # else句を用いてこのコマンドの自動削除は行わない。このクラスの呼び出し側でしかるべき処理が行われたのち、その呼び出し側の責任でフラグをクリアする。
                         # 自分のリセットコマンドを拾わないように、リセットコマンドの送信元が自分であった場合はリセットコマンドを建てる処理を拒否する
@@ -100,9 +100,10 @@ class ThreadUART(Thread):
                 if self._send_reset:
                     j += 1
                     print(j)
-                    if j >= 10:
+                    if j >= 20:
                         self._send_reset = False
                         j = 0
+                        print("reset command end")
             sleep(0.2)
             
     def reset_command(self,val : int):
@@ -169,6 +170,10 @@ class ThreadUART(Thread):
     def unflag_reset(self):
         with self._lock:
             self._reset_cmd = False
+
+    def set_can_reset(self,flag :bool):
+        with self._lock:
+            self._can_reset = flag
 
     # Override
     def run(self):

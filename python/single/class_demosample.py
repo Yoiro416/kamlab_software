@@ -148,12 +148,14 @@ def show_image(i):#i : integer, 0<=i<=15
                 y_point = int(mouseData.getY())
                 if y_point >= 400 and y_point <= 460:
                     # cv2.destroyAllWindows()
-                    single()
+                    # single()
+                    break
                     
             if x_point >= 30 and x_point <= 90:
                 y_point = int(mouseData.getY())
                 if y_point >= 400 and y_point <= 460:
-                    cv2.destroyAllWindows(img)
+                    # cv2.destroyAllWindows(img)
+                    break
                     
         now = multi_nowutctime(m1)
 
@@ -199,9 +201,9 @@ def show_image(i):#i : integer, 0<=i<=15
         
 
         # 'q'キーが押されたら終了
-        # if key == ord('q'):
-        #     cv2.destroyAllWindows(img)
-        #     break
+        if key == ord('q'):
+            # cv2.destroyAllWindows(img)
+            break
      
     return 
 
@@ -210,7 +212,7 @@ def multiple():
      
     seed = random.random()
     list = rand_ints_nodup(seed,16)
-    # print(list)
+    # print(list)q
     show_image(list[0])
 
 #単体機能
