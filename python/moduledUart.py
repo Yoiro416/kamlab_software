@@ -23,7 +23,7 @@ $ pinout
 
 rate = 115200 # 共通
 t = 1 # 共通
-MYID = 0
+MYID = 8
 can_reset = True
 
 # left = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15

@@ -51,13 +51,21 @@ class ThreadUART(Thread):
                     connect_from_temp = connect_from_temp.lstrip("b'")
                     self._connect_from = int(connect_from_temp)
                     # print(f'read success, {self._connect_from = }, {self._val1 = }, {self._val2 = }')
-                    
-                    if self._val1 == 3 and self._can_reset:
+                    if self._val1 == 1:
+                        self._iscomplete = False
+                        self._isrelay = True
+                    elif self._val1 == 2:
+                        self._iscomplete = True
+                        self._isrelay = True 
+                    elif self._val1 == 3 and self._can_reset:
                         self._reset_cmd = True
                         self._can_reset = False
                         self._reset_unsetIDs = self._val2
                         # else句を用いてこのコマンドの自動削除は行わない。このクラスの呼び出し側でしかるべき処理が行われたのち、その呼び出し側の責任でフラグをクリアする。
                         # 自分のリセットコマンドを拾わないように、リセットコマンドの送信元が自分であった場合はリセットコマンドを建てる処理を拒否する
+                    elif self._val1 == 0:
+                        self._iscomplete = False
+                        self._isrelay = False
                     # if self._val1 == 3 and self._id == self._connect_from:
                     #     print("process rejected")
             except:
@@ -84,7 +92,6 @@ class ThreadUART(Thread):
                     msg += '3,'# リセットコマンドは最優先で処理
                     msg += str(self._unsetflags)
                     msg += ',*'
-                    print(msg)
                     j += 1 
                     if j >= 20:
                         self._send_reset = False
