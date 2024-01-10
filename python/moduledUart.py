@@ -78,6 +78,15 @@ def main():
         # print(f'{can_reset = }')
         print('\n-----DEBUG MSG END------\n')
 
+        l,t,r,b = iscorrect_connect(MYID, l_from, r_from, t_from, b_from)
+        show_task.set_ltrb_connected(l,t,r,b)
+        
+        # ID0以外からのリセットコマンド送信は認めない
+        do_reset = show_task.get_resetcmd()
+        if MYID != 0:
+            do_reset = False
+            show_task.set_resetcmd(False)
+        
         if MYID == 0:
             # 自分のIDが1の場合は、常に右側のデバイスに対して0から接続していることを通知する。
             right.set_relay(True) 
@@ -87,21 +96,24 @@ def main():
             else:
                 right.set_complete(False)
             
-            # if show_task.get_buttonstate() and can_reset:
-            if indexer == 8:
-                show_task.set_buttonstate(False)
+            if show_task.get_resetcmd() and can_reset:
+            # if indexer == 8:
                 flag_bytes = 65535
                 MYID, left_id = decide_id(flag_bytes)
                 print(MYID)
                 # print(left_id)
                 right.reset_command(left_id) 
                 initialize()
+                show_task.set_resetcmd(False)
+                continue
+            else:
+                # 余計な状態の保持を防止
+                show_task.set_resetcmd(False)
 
         elif 1 <= MYID and MYID <= 6 :
             # 上と右の接続をしているかは表示関数にのみ適応すればよさそう
             # どうせすべて正しく接続されているなら自分の一つ前しか見なくていいし
             
-            #TODO 
             # 一度だけリセットコマンドを送信すると読み取りタイミングなどの問題でその情報が落ちる可能性があるため、次のプロトコルを実装する
             # まずID0のデバイスでリセットコマンドを受け付ける。リセットコマンドはval1に3をセットする事で表現する。
             # コマンドを受け付けたデバイスは未使用のビットに設定されたIDを自身に割り付ける
@@ -119,7 +131,8 @@ def main():
                 right.reset_command(left_id)
                 # 表示や自身のIDなどを初期化する。can_resetフラグもここで設定する
                 initialize() 
-                # リセット後はループの先頭に戻り引き続き動作する
+                left.unflag_reset()
+                continue
             
             # 指示を受けたコネクタに保持されたリセット指示のフラグを取り下げる
             left.unflag_reset() 
@@ -144,6 +157,8 @@ def main():
                 MYID, left_id = decide_id(flag_bytes)
                 bottom.reset_command(left_id)
                 initialize()
+                left.unflag_reset()
+                continue
             left.unflag_reset()
             
             if l_from == (MYID - 1):
@@ -166,6 +181,9 @@ def main():
                 # 最後だしわざわざ送り返さなくても大丈夫なはず
                 # top.reset_command(left_id)
                 initialize()
+                right.unflag_reset()
+                continue
+                
             right.unflag_reset()
                 
             if r_from == (MYID + 1):
@@ -181,6 +199,8 @@ def main():
                 flag_bytes = right.get_unsetIDs()
                 MYID, left_id = decide_id(flag_bytes)
                 initialize()
+                right.unflag_reset()
+                continue
             right.unflag_reset()
             
             if r_from == (MYID + 1):
@@ -201,6 +221,8 @@ def main():
                 flag_bytes = top.get_unsetIDs()
                 MYID, left_id = decide_id(flag_bytes)
                 initialize()
+                top.unflag_reset()
+                continue
             top.unflag_reset()
             
             if t_from == (MYID - 8):
@@ -222,20 +244,6 @@ def main():
         
         time.sleep(1)
         print(f'{MYID = }')
-
-
-def show_window(id : int):
-    '''This function is a Stab : show map & clock
-    
-    [l,r,t,b]_from variable required when implemented
-    
-    Check connected devices are correct or incorrect by MYID
-    
-    '''
-    # 画面の表示関数にいま正常に接続しているか、どの面に接続しているかを表示するための変数を渡すこと
-    # 接続しているデバイスのIDが正しいかどうかもここで判断する。上で判断してもいいかもしれないがコードがあまりにも煩雑になると判断
-    print(f'stab - show window {id}')
-
 
 def unflag_canreset():
     global can_reset
@@ -264,6 +272,67 @@ def initialize():
     bottom.initialize(MYID)
     t = Timer(10.0,unflag_canreset)
     t.start()
+    
+def iscorrect_connect(id : int, left : int, right : int, top : int, bottom : int):
+    l = False
+    t = False
+    r = False
+    b = False
+    
+    if id == 0:
+        l = True
+        t = True
+        if right == 1:
+            t = True
+        if bottom == 8:
+            b = True
+            
+    if 1 <= id and id <= 6:
+        t = True
+        if left == id - 1:
+            l = True
+        if right == id + 1:
+            r = True
+        if bottom == id + 8:
+            b = True
+    
+    if id == 7:
+        r = True
+        t = True
+        if left == id - 1:
+            l = True
+        if bottom == id + 8:
+            b = True
+    
+    if id == 8:
+        l = True
+        b = True
+        if top == 0:
+            t = True
+        if right == 9:
+            r = True
+    
+    if 9 <= id and id <= 14:
+        b = True
+        if top == id - 8:
+            t = True
+        if left == id - 1:
+            l = True
+        if right == id + 1:
+            r = True
+    
+    if id == 15:
+        right = True
+        bottom = True
+        if top == 7:
+            t = True
+        if left == 14:
+            l = True
+    
+    if id < 0 or 16 <= id:
+        print('invalid id!')
+        
+    return l,t,r,b
 
 if __name__ == '__main__':
     main_task = Thread(target=main,args=[],daemon=False)

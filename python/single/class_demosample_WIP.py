@@ -1,10 +1,12 @@
 import cv2
 import datetime
 import random
-from threading import Thread,Lock
+from threading import Thread, Lock
+from time import sleep
 
-#TODO これ別のファイルに移せば状態を保持するクラスとしない関数に分離できて便利なんだけど...やってみるか
-# あとクラス化した意味もなくなるので元のまま使える
+# 0:単体、1:全体、-1:終了
+flag = 1
+
 class mouseParam:
     def __init__(self, input_img_name):
         #マウス入力用のパラメータ
@@ -44,38 +46,40 @@ class mouseParam:
     def getPos(self):
         return (self.mouseEvent["x"], self.mouseEvent["y"])
 
+# 全体機能
+# 重複のない乱数を発生させる関数
 class ClassShowImage(Thread):
     
     def __init__(self, deviceid : int):
         super(ClassShowImage, self).__init__()
-        self.setDaemon(True)
         
-        self._deviceID = deviceid
         self._lock = Lock()
-        self.reset_cmd = False
+        self._deviceID = deviceid
+        self._flag = 1
+        self._l_connected = False
+        self._r_connected = False
+        self._t_connected = False
+        self._b_connected = False
+        # リセットボタンが押された場合はTrueがセットされる。
+        self._reset_pressed = False
         
-        m = Thread(target=self.multiple,args=[],daemon= True)
+    def run(self) -> None:
+        m = Thread(target = self.main, args=[], daemon= True)
         m.start()
-        print("STARTED")
-        # input() #DEBUG FOR BLOCKING
-        # multiple()
-        # single()
+    
+    def main(self):
+        can_continued = True
+        while can_continued:
+            if self._flag == 1:
+                can_continued = self.multiple()
         
-    # 全体機能
-    # 重複のない乱数を発生させる関数
-    def rand_ints_nodup(self,seed,a):
-        random.seed(seed) 
-        ns = []
-        while len(ns) < a:
-            n = random.randrange(a)
-            if not n in ns:
-                ns.append(n)
-        
-        return ns
+            elif self._flag == 0:
+                can_continued = self.single()
+        cv2.destroyAllWindows()
         
 
-    # UTCを決める関数
-    def utctime(self,n):
+    # UTCを決める関数(全体機能の一部)
+    def multi_utctime(self,n):
         if n == 0:
             return 0
         
@@ -99,8 +103,6 @@ class ClassShowImage(Thread):
         
         elif n == 7:
             return -3
-        
-            
 
     # 枠を作る関数
     def create_frame(self,filename,height,width,n1,n2,n3,n4):
@@ -116,53 +118,68 @@ class ClassShowImage(Thread):
         if n4 == False:
             cv2.line(filename, (width, height), (0, height), (0, 0, 255), thickness=15, lineType=cv2.LINE_AA)
             
+    def multi_nowutctime (self,num):
+        utc = self.multi_utctime(num)
+        now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=utc)))
+        return now
+            
+    #フルスクリーンにする関数  
+    def imshow_fullscreen(self,winname):
+        cv2.namedWindow(winname,cv2.WINDOW_NORMAL)
+        cv2.setWindowProperty(winname,cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
 
-    def show_image(self,i):#i : integer, 0<=i<=15
+    def show_image(self,i : int) -> bool :#i : 0<=i<=15
+        if i < 0 or 15 < i:
+            print(f'invalid id {i}. 0 <= i <= 15')
+            return False
         # iに応じて表示する
         m1 = i%8
         m2 = i//8
         
-        
         filename = "subimage_{0}_{1}.jpg".format(m2,m1)
-        print(filename)
+        print(f'loaded {filename}')
         
         #表示するWindow名
         window = "img_with_time"
         
-        path = "single/image/" + filename
-        print(f'filename : {path = }')
+        if __name__ == '__main__':
+            #FOR DEBUG
+            path = "image/" + filename
+        else:
+            path = "single/image" + filename
+        
         img = cv2.imread(path)
-        img_with_time = img.copy()
+        
+        self.imshow_fullscreen(window)
         
         height, width = img.shape[:2]
         
         img_r = cv2.rotate(img,cv2.ROTATE_90_CLOCKWISE)
-        # cv2.imshow(window, img_r)
+        cv2.imshow(window, img_r)
         
         #コールバックの設定
         mouseData = mouseParam(window)
         
         while True:
-            
-            n1 = False
-            n2 = False
-            n3 = False
-            n4 = False
-
             # 画像をコピーして新しい描画を行うための準備
             img_with_time = img.copy()
             
             if mouseData.getEvent() == cv2.EVENT_LBUTTONDOWN:
                 x_point = int(mouseData.getX())
+                y_point = int(mouseData.getY())
                 print(mouseData.getX())
                 if x_point >= 710 and x_point <= 770:
-                    y_point = int(mouseData.getY())
                     if y_point >= 400 and y_point <= 460:
-                        self.reset_cmd = True
-                        # cv2.destroyAllWindows()
-                        # self.single()
+                        with self._lock:
+                            self._flag = 0
+                        return True
+                if x_point >= 30 and x_point <= 90:
+                    if y_point >= 400 and y_point <= 460:
+                        with self._lock:
+                            self._reset_pressed = True
+                        return True
                         
-            now = self.now_utctime(m1)
+            now = self.multi_nowutctime(m1)
 
             # 現在時刻を文字列に変換
             now_day = now.strftime('%Y/%m/%d')
@@ -172,139 +189,214 @@ class ClassShowImage(Thread):
             cv2.putText(img_with_time, now_day, (10, 35), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             cv2.putText(img_with_time, now_time, (55, 400), cv2.FONT_HERSHEY_SIMPLEX, 2.5, (255, 255, 255), 6, cv2.LINE_AA)
             
+            if __name__ == '__main__':
+                cv2.putText(img, "INFO : DEBUG MODE", (10,70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 1,cv2.LINE_AA)
+            
             #ボタンのための丸
             cv2.circle(img_with_time, (430, 60), 30, (255, 255, 255), thickness=-1)
+            cv2.circle(img_with_time, (430, 740), 30, (0, 0, 255), thickness=-1)
             
-            
-            if now.second>=0 and now.second<30:
-                n1 = True 
-            
-            if now.second>=15 and now.second<45:
-                n2 = True      
-                
-            if now.second>=30 and now.second<60:
-                n3 = True 
-            
-            if now.second>=45 or now.second<15:
-                n4 = True 
-            
-            #条件を隣同士の接続が正しいなら、と変更する。
-            self.create_frame(img_with_time, height, width, n1, n2, n3, n4)
-            
+            with self._lock:
+                self.create_frame(img_with_time, height, width, self._l_connected, self._t_connected, self._r_connected, self._b_connected)
             #90°回転させる
             img_rotate = cv2.rotate(img_with_time,cv2.ROTATE_90_CLOCKWISE)
-            
-            
             # 画像を表示
             cv2.imshow(window, img_rotate)
             
-            # imshow_fullscreen('Image with time', img_rotate)
 
             # 1秒ごとに更新
             key = cv2.waitKey(20)
-            
-
-            # 'q'キーが押されたら終了
             if key == ord('q'):
-                cv2.destroyAllWindows(img)
-                break
-        return 
-
+                return False
 
     def multiple(self):
         
         # seed = random.random()
         # list = self.rand_ints_nodup(seed,16)
-        # print(list)
-        self.show_image(0)
+        # print(list)q
+        # self.show_image(list[0])
+        return self.show_image(self._deviceID)
 
     #単体機能
     #740,430
     # 30
     #710,400,770,460
         
-    def now_utctime (self,num):
-        utc = self.utctime(num)
+    # UTCを決める関数(単体)
+    def mono_utctime(slef,x):
+        if x <= 36:
+            return -1
+        
+        elif x <= 71:
+            return 0
+        
+        elif x <= 104:
+            return 1
+        
+        elif x <= 137:
+            return 2
+        
+        elif x <= 171:
+            return 3
+        
+        elif x <= 204:
+            return 4
+        
+        elif x <= 237:
+            return 5
+        
+        elif x <= 272:
+            return 6
+        
+        elif x <= 304:
+            return 7
+        
+        elif x <= 337:
+            return 8
+        
+        elif x <= 370:
+            return 9
+        
+        elif x <= 403:
+            return 10
+        
+        elif x <= 435:
+            return 11
+        
+        elif x <= 452:
+            return 12
+        
+        elif x <= 470:
+            return -12
+        
+        elif x <= 488:
+            return -11
+        
+        elif x <= 522:
+            return -10
+        
+        elif x <= 555:
+            return -9
+        
+        elif x <= 588:
+            return -8
+        
+        elif x <= 620:
+            return -7
+        
+        elif x <= 654:
+            return -6
+        
+        elif x <= 677:
+            return -5
+        
+        elif x <= 722:
+            return -4
+        
+        elif x <= 754:
+            return -3
+        
+        elif x <= 800:
+            return -2
+        
+    def mono_nowutctime (self,num):
+        utc = self.mono_utctime(num)
         now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=utc)))
         return now
-
 
     def single(self):
         
         #表示するWindow名
-        window_name = "input window"
-        # mouse_click = mouseParam(window_name)
-        # path = "image/world.jpg"
-        path = "image/world.jpg"
+        window = "img_with_time"
+        if __name__ == '__main__':
+            path = "image/world.jpg"
+        else: 
+            path = "single/image/world.jpg"
         
         #入力画像
         read = cv2.imread(path)
         
         #画像の表示
-        cv2.imshow(window_name, read)
+        cv2.imshow(window, read)
         
         #コールバックの設定
-        mouseData = mouseParam(window_name)
+        mouseData = mouseParam(window)
         
         x_point = 350
         while True:
-            # #コールバックの設定
-            # mouseData = mouseParam(window_name)
             img = read.copy()
             #左クリックがあったら表示
             if mouseData.getEvent() == cv2.EVENT_LBUTTONDOWN:
                 x_point = int(mouseData.getX())
-                print(mouseData.getX())
+                y_point = int(mouseData.getY())
+                # print(mouseData.getX())
                 if x_point >= 710 and x_point <= 770:
-                    y_point = int(mouseData.getY())
                     if y_point >= 400 and y_point <= 460:
-                        #WHEN BUTTON WAS CLICKED
                         with self._lock:
-                            self.reset_cmd = True
-                        
-                        # cv2.destroyAllWindows()
-                        # self.multiple()
+                            self._flag = 1
+                        return True
+                    
+                if x_point >= 30 and x_point <= 90:
+                    if y_point >= 400 and y_point <= 460:
+                        with self._lock:
+                            self._reset_pressed = True
+                        return True
                     
             
             #710,400,770,460
-            now = self.now_utctime(x_point//100)
+            now = self.mono_nowutctime(x_point)
             # 現在時刻を文字列に変換
             now_day = now.strftime('%Y/%m/%d')
             now_time = now.strftime('%H:%M:%S')
             
             # 画像に現在時刻を描画
             cv2.putText(img, now_day, (10, 35), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-            cv2.putText(img, now_time, (55, 400), cv2.FONT_HERSHEY_SIMPLEX, 2.5, (255, 255, 255), 6, cv2.LINE_AA)
-            cv2.circle(img, (740, 430), 30, (255, 255, 255), thickness=-1)
+            cv2.putText(img, now_time, (55, 300), cv2.FONT_HERSHEY_SIMPLEX, 2.5, (255, 255, 255), 6, cv2.LINE_AA)
+            
+            if __name__ == '__main__':
+                cv2.putText(img, "INFO : DEBUG MODE", (10,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 1,cv2.LINE_AA)
+            
+            cv2.circle(img, (740, 430), 30, (0, 0, 0), thickness=-1)
+            cv2.circle(img, (60, 430), 30, (0, 0, 255), thickness=-1)
             # 画像を表示
-            cv2.imshow(window_name, img)
+            cv2.imshow(window, img)
             # 1秒ごとに更新
-            key = cv2.waitKey(20)        
-
-            # 'q'キーが押されたら終了
+            key = cv2.waitKey(20)
             if key == ord('q'):
-                cv2.destroyAllWindows(img)
-                break
-            
-                
-        cv2.destroyAllWindows()
-    
-    #Accessors:
-    def get_buttonstate(self):
-        with self._lock:
-            return self.reset_cmd
+                return False
 
-    def set_buttonstate(self, flag : bool):
+    def get_resetcmd(self):
         with self._lock:
-            self.reset_cmd = flag
-    
-    def set_deviceID(self, id : int):
-        if id < 0 or 16 <= id:
-            print("ERROR : invalid ID. Couldn't set device ID")
-            return
+            return self._reset_pressed
+
+    def set_resetcmd(self,flag : bool):
+        with self._lock:
+            self._reset_pressed = flag
             
+    def set_ltrb_connected(self,l : bool, t : bool, r : bool, b : bool):
         with self._lock:
-            self._deviceID = id
+            try:
+                self._l_connected = l
+                self._t_connected = t
+                self._r_connected = r
+                self._b_connected = b
+            except:
+                print("invalid value. values must be bool")
 
 if __name__ == '__main__':
-    m = ClassShowImage()
+    print('INFO : This is debug code')
+    instance = ClassShowImage(0)
+    instance.start()
+    # instance.main()
+    
+    while not instance.get_resetcmd():
+        sleep(1)
+        instance.set_ltrb_connected(False,False,False,True)
+        sleep(1)
+        instance.set_ltrb_connected(True,False,False,False)
+        sleep(1)
+        instance.set_ltrb_connected(False,True,False,False)
+        sleep(1)
+        instance.set_ltrb_connected(False,False,True,False)
+    
+    
