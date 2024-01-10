@@ -201,10 +201,7 @@ def show_image(i):#i : integer, 0<=i<=15
 
         # 1秒ごとに更新
         key = cv2.waitKey(20)
-        
 
-    
-     
     return flag
 
 
@@ -212,7 +209,7 @@ def multiple():
      
     seed = random.random()
     list = rand_ints_nodup(seed,16)
-    # print(list)
+    # print(list)q
     show_image(list[0])
 
 #単体機能
