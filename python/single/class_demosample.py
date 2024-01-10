@@ -147,14 +147,11 @@ def show_image(i):#i : integer, 0<=i<=15
             if x_point >= 710 and x_point <= 770:
                 y_point = int(mouseData.getY())
                 if y_point >= 400 and y_point <= 460:
-                    # cv2.destroyAllWindows()
-                    # single()
                     break
                     
             if x_point >= 30 and x_point <= 90:
                 y_point = int(mouseData.getY())
                 if y_point >= 400 and y_point <= 460:
-                    # cv2.destroyAllWindows(img)
                     break
                     
         now = multi_nowutctime(m1)
@@ -199,12 +196,6 @@ def show_image(i):#i : integer, 0<=i<=15
         # 1秒ごとに更新
         key = cv2.waitKey(20)
         
-
-        # 'q'キーが押されたら終了
-        if key == ord('q'):
-            # cv2.destroyAllWindows(img)
-            break
-     
     return 
 
 
