@@ -81,12 +81,12 @@ def main():
         if MYID == 0:
             # 自分のIDが1の場合は、常に右側のデバイスに対して0から接続していることを通知する。
             right.set_relay(True) 
-            if b_from == 8:
-                if b_isrelay == True:
-                    # bottomがID15から接続されており、かつisrelayが有効ならすべてが接続されている。
-                    right.set_complete(True) 
-                else:
-                    right.set_complete(False)
+            if b_from == 8 and b_isrelay:
+                # bottomがID15から接続されており、かつisrelayが有効ならすべてが接続されている。
+                right.set_complete(True) 
+            else:
+                right.set_complete(False)
+            
             # if show_task.get_buttonstate() and can_reset:
             if indexer == 8:
                 show_task.set_buttonstate(False)
