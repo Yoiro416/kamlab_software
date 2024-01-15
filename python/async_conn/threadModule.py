@@ -99,7 +99,7 @@ class ThreadUART(Thread):
                 elif self._iscomplete:
                     msg += '2,'# ID0からすべてのデバイスがつながっている
                     msg += '0,*' # dummy
-                elif self._isrelay:
+                elif self._isrelay or self._id == 0:
                     msg += '1,'# ID0からつながっている
                     msg += '0,*' # dummy
                 else:
