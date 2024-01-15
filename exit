@@ -1,0 +1,43 @@
+[1mdiff --git a/python/moduledUart.py b/python/moduledUart.py[m
+[1mindex 89f1b29..d6b06b9 100644[m
+[1m--- a/python/moduledUart.py[m
+[1m+++ b/python/moduledUart.py[m
+[36m@@ -23,18 +23,18 @@[m [m$ pinout[m
+ [m
+ rate = 115200 # 共通[m
+ t = 1 # 共通[m
+[31m-MYID = 1 # 通達されたIDを入れてください[m
+[32m+[m[32mMYID = 11 # 通達されたIDを入れてください[m
+ can_reset = True[m
+ [m
+[31m-top = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15[m
+[31m-left = threadModule.ThreadUART(devicename='/dev/ttyAMA1', baudrate=rate, id=MYID, timeout=t) # GPIO0,1[m
+[31m-right = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO8,9[m
+[31m-bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA3', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13[m
+[32m+[m[32m#top = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15[m
+[32m+[m[32m#left = threadModule.ThreadUART(devicename='/dev/ttyAMA1', baudrate=rate, id=MYID, timeout=t) # GPIO0,1[m
+[32m+[m[32m#right = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO8,9[m
+[32m+[m[32m#bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA3', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13[m
+ # 特別な場合を除き、以下のコードでではなく上記のコードで通信用のオブジェクトを生成してください[m
+[31m-# top = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15[m
+[31m-# left = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO0,1[m
+[31m-# right = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, id=MYID, timeout=t) # GPIO8,9[m
+[31m-# bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA5', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13[m
+[32m+[m[32mtop = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15[m
+[32m+[m[32mleft = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO0,1[m
+[32m+[m[32mright = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, id=MYID, timeout=t) # GPIO8,9[m
+[32m+[m[32mbottom = threadModule.ThreadUART(devicename='/dev/ttyAMA5', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13[m
+ # # BCM2711チップセットを使用している環境と、BCM2835チップセット[m
+ # を使用する環境ではデバイスに割り振られる名前やdtoverlay関係に微妙に差がある[m
+ # BCM2835用のコードが上で、2711が下です。[m
+[36m@@ -322,8 +322,8 @@[m [mdef iscorrect_connect(id : int, left : int, right : int, top : int, bottom : int[m
+             r = True[m
+     [m
+     if id == 15:[m
+[31m-        right = True[m
+[31m-        bottom = True[m
+[32m+[m[32m        r = True[m
+[32m+[m[32m        b = True[m
+         if top == 7:[m
+             t = True[m
+         if left == 14:[m
