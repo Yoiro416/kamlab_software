@@ -23,21 +23,21 @@ $ pinout
 
 rate = 115200 # 共通
 t = 1 # 共通
-MYID = 8
+MYID = 1 # 通達されたIDを入れてください
 can_reset = True
 
-# left = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15
-# right = threadModule.ThreadUART(devicename='/dev/ttyAMA1', baudrate=rate, id=MYID, timeout=t) # GPIO0,1
-# top = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO8,9
-# bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA3', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13
-# 特別な場合を除き、以下のコードでではなく上記のコードで通信用のオブジェクトを生成してください
 left = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15
-right = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO0,1
-top = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, id=MYID, timeout=t) # GPIO8,9
-bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA5', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13
-# BCM2711チップセットを使用している環境と、BCM2835チップセット
-# を使用する環境ではデバイスに割り振られる名前やdtoverlay関係に微妙に差がある
-# BCM2835用のコードが上で、2711が下です。
+right = threadModule.ThreadUART(devicename='/dev/ttyAMA1', baudrate=rate, id=MYID, timeout=t) # GPIO0,1
+top = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO8,9
+bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA3', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13 
+# もしbottomの部分の通信がうまくいかない場合は、/boot/config.txtの
+# dtoverlay = uart3 の部分を削除してください
+
+# 特別な場合を除き、以下のコードでではなく上記のコードで通信用のオブジェクトを生成してください
+# left = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15
+# right = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO0,1
+# top = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, id=MYID, timeout=t) # GPIO8,9
+# bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA5', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13
 
 show_task = class_demosample_WIP.ClassShowImage(MYID)
 

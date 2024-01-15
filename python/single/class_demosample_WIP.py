@@ -1,6 +1,5 @@
 import cv2
 import datetime
-import random
 from threading import Thread, Lock
 from time import sleep
 
@@ -146,7 +145,7 @@ class ClassShowImage(Thread):
             #FOR DEBUG
             path = "image/" + filename
         else:
-            path = "single/image" + filename
+            path = "single/image/" + filename
         
         img = cv2.imread(path)
         
@@ -178,6 +177,10 @@ class ClassShowImage(Thread):
                         with self._lock:
                             self._reset_pressed = True
                         return True
+                
+                if x_point >= 30 and x_point <= 90:
+                    if y_point >= 30 and y_point <= 90:
+                        return False
                         
             now = self.multi_nowutctime(m1)
 
@@ -195,6 +198,7 @@ class ClassShowImage(Thread):
             #ボタンのための丸
             cv2.circle(img_with_time, (430, 60), 30, (255, 255, 255), thickness=-1)
             cv2.circle(img_with_time, (430, 740), 30, (0, 0, 255), thickness=-1)
+            cv2.circle(img_with_time, (60, 740), 30, (0, 255, 255), thickness=-1)
             
             with self._lock:
                 self.create_frame(img_with_time, height, width, self._l_connected, self._t_connected, self._r_connected, self._b_connected)
@@ -341,6 +345,10 @@ class ClassShowImage(Thread):
                         with self._lock:
                             self._reset_pressed = True
                         return True
+
+                if x_point >= 710 and x_point <= 770:
+                    if y_point >= 30 and y_point <= 90:
+                        return False
                     
             
             #710,400,770,460
@@ -358,6 +366,7 @@ class ClassShowImage(Thread):
             
             cv2.circle(img, (740, 430), 30, (0, 0, 0), thickness=-1)
             cv2.circle(img, (60, 430), 30, (0, 0, 255), thickness=-1)
+            cv2.circle(img, (740, 60), 30, (0, 255, 255), thickness=-1)
             # 画像を表示
             cv2.imshow(window, img)
             # 1秒ごとに更新
@@ -392,11 +401,15 @@ if __name__ == '__main__':
     while not instance.get_resetcmd():
         sleep(1)
         instance.set_ltrb_connected(False,False,False,True)
+        print(instance.get_resetcmd())
         sleep(1)
         instance.set_ltrb_connected(True,False,False,False)
+        print(instance.get_resetcmd())
         sleep(1)
         instance.set_ltrb_connected(False,True,False,False)
+        print(instance.get_resetcmd())
         sleep(1)
         instance.set_ltrb_connected(False,False,True,False)
-    
+        print(instance.get_resetcmd())
+
     
