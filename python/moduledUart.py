@@ -283,7 +283,7 @@ def iscorrect_connect(id : int, left : int, right : int, top : int, bottom : int
         l = True
         t = True
         if right == 1:
-            t = True
+            r = True
         if bottom == 8:
             b = True
             
