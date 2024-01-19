@@ -21,23 +21,22 @@ $ pinout
     GPIOの配置を確認可能
 '''
 
-rate = 115200 # 共通
-t = 1 # 共通
-MYID = 11 # 通達されたIDを入れてください
+rate = 115200 # 共通,threading.Thread()のbaudrate
+t = 1 # 共通,threading.Thread()のtimeout
+MYID = 0 # 通達されたIDを入れてください. デフォルト:0
 can_reset = True
 
+# threading.ThreadをOverrideして使用している。./async_conn/threadModule.pyを参照のこと
 top = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15
 left = threadModule.ThreadUART(devicename='/dev/ttyAMA1', baudrate=rate, id=MYID, timeout=t) # GPIO0,1
 right = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO8,9
 bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA3', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13
-# 特別な場合を除き、以下のコードでではなく上記のコードで通信用のオブジェクトを生成してください
+# 特別な場合を除き、上記のコードで通信用のオブジェクトを生成してください
 #top = threadModule.ThreadUART(devicename='/dev/ttyAMA0', baudrate=rate, id=MYID,timeout=t) # GPIO14,15
 #left = threadModule.ThreadUART(devicename='/dev/ttyAMA2', baudrate=rate, id=MYID, timeout=t) # GPIO0,1
 #right = threadModule.ThreadUART(devicename='/dev/ttyAMA4', baudrate=rate, id=MYID, timeout=t) # GPIO8,9
 #bottom = threadModule.ThreadUART(devicename='/dev/ttyAMA5', baudrate=rate, id=MYID, timeout=t) # GPIO 12,13
-# # BCM2711チップセットを使用している環境と、BCM2835チップセット
-# を使用する環境ではデバイスに割り振られる名前やdtoverlay関係に微妙に差がある
-# BCM2835用のコードが上で、2711が下です。
+# デバイスの設定によっては上ではなく下でないとうまく動かない場合がある
 
 show_task = class_demosample_WIP.ClassShowImage(MYID)
 
@@ -53,22 +52,21 @@ def main():
     bottom.start()
     show_task.start()
     
+    # デバッグメッセージ用の番号
     indexer = 0
+    
+    # デバッグのため、画面表示が停止してもデバッグメッセージの表示と通信は続ける
     while True:
-        # fromはどのIDのデバイスから流れてきた信号かを判断する。表示関数で使用するほか、下記の制御でも自分のIDによって一つ読む
-        # isrelayは隣のデバイスがデバイスID0のデバイスから正常に追跡できているかどうかを判別するために使用する。下記の制御で使用する
-        # iscompleteは表示関数に渡す
-        # resetはリセット信号がたっているかどうかのフラグ、このモジュールの責任でフラグがたった際の処理を行い、フラグの削除まで責任を負う
+        
+        # from          どのIDのデバイスから流れてきた信号かを判断する。表示関数と接続判定で使用する
+        # isrelay       隣のデバイスがデバイスID0(始点)のデバイスから正常に接続されているかどうかを判別するために使用する。
+        # iscomplete    表示関数に渡す
+        # reset         リセット信号がたっているかどうかのフラグ、このモジュールの責任でフラグがたった際の処理を行い、フラグの削除まで本スレッドが責任を負う
         l_from,l_isrelay,l_iscomplete,l_reset = left.get_state()
         r_from,r_isrelay,r_iscomplete,r_reset = right.get_state()
         t_from,t_isrelay,t_iscomplete,t_reset = top.get_state()
         b_from,b_isrelay,b_iscomplete,b_reset = bottom.get_state()
         
-        
-        #FOR DEBUG! DELETE THIS : STAB!!!!!
-        # if r_from == 0:
-        #     b_from = 8
-        #     b_isrelay = True
         indexer += 1
         print(f'-----DEBUG MSG START----- {indexer}\n')
         print(f'{l_from = }, {l_isrelay = }, {l_iscomplete = }, {l_reset = }')
@@ -81,10 +79,8 @@ def main():
         l,t,r,b = iscorrect_connect(MYID, l_from, r_from, t_from, b_from)
         show_task.set_ltrb_connected(l,t,r,b)
         
-        # ID0以外からのリセットコマンド送信は認めない
-        do_reset = show_task.get_resetcmd()
+        # ID0以外からのリセットコマンド送信は認めない.ディスプレイ上でボタンが押された場合フラグは削除する
         if MYID != 0:
-            do_reset = False
             show_task.set_resetcmd(False)
         
         if MYID == 0:
@@ -92,16 +88,15 @@ def main():
             right.set_relay(True) 
             if b_from == 8 and b_isrelay:
                 # bottomがID15から接続されており、かつisrelayが有効ならすべてが接続されている。
+                # 全体が接続されていた際の動作は未実装(2024/01/19(Fri))
                 right.set_complete(True) 
             else:
                 right.set_complete(False)
             
             if show_task.get_resetcmd() and can_reset:
-            # if indexer == 8:
                 flag_bytes = 65535
                 MYID, left_id = decide_id(flag_bytes)
                 print(MYID)
-                # print(left_id)
                 right.reset_command(left_id) 
                 initialize()
                 show_task.set_resetcmd(False)
@@ -122,7 +117,6 @@ def main():
             
             # 左からリセットの指示が飛んできた場合の処理
             if l_reset and can_reset:
-                # 未使用のIDを取得
                 # 未使用のIDを取得
                 flag_bytes = left.get_unsetIDs()
                 #TODO リセット処理をここに
@@ -178,8 +172,6 @@ def main():
             if r_reset and can_reset:
                 flag_bytes = right.get_unsetIDs()
                 MYID, left_id = decide_id(flag_bytes)
-                # 最後だしわざわざ送り返さなくても大丈夫なはず
-                # top.reset_command(left_id)
                 initialize()
                 right.unflag_reset()
                 continue
@@ -237,7 +229,8 @@ def main():
             else:
                 left.set_complete(False)
                 left.set_relay(False)
-        
+
+        # 無効なIDの場合
         if MYID >=16:
             print("UNDEFINED ID!")
             exit(1)
@@ -247,7 +240,7 @@ def main():
 
 def unflag_canreset():
     global can_reset
-    can_reset = False
+    can_reset = True
     left.set_can_reset(True)
     right.set_can_reset(True)
     bottom.set_can_reset(True)
@@ -337,4 +330,5 @@ def iscorrect_connect(id : int, left : int, right : int, top : int, bottom : int
 if __name__ == '__main__':
     main_task = Thread(target=main,args=[],daemon=False)
     # main_taskが終了すると他のthreadも終了する
+    # daemon = Falseのスレッドがすべて停止すると daemon = Trueのスレッドはすべて停止する。
     main_task.start()

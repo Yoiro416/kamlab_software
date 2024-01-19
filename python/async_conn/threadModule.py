@@ -11,9 +11,6 @@ val1 : 0でID0とは切り離されており、1でdevice ID 0からつながっ
 val2 : 16bitデータ。ランダムなID割り振りに使う。val1が2以外の時は0(まあ何でもいいけど軽量な値)
 '''
 
-# CV2のセットアップがうまく行かない。pip freezeを用いてpyにインストールされているモジュールの確認を行うこと
-
-
 class ThreadUART(Thread):
     
     # _ prefix is annotation : this function/variable is private
@@ -22,7 +19,7 @@ class ThreadUART(Thread):
         self.setDaemon(True)
         
         self._lock = Lock()
-        # self.initialize(id = id)
+        # self.initialize(id = id) 
         self._isrelay = relay # 自分
         self._id = id
         self._val1 = 0
@@ -32,9 +29,9 @@ class ThreadUART(Thread):
         self._reset_cmd = False
         self._reset_unsetIDs = 0b1111111111111111 # 16bit
         self._send_reset = False
-        self._can_reset = True        
+        self._can_reset = True
         
-        ## デバッグメッセージ&通信のセットアップ
+        # デバッグメッセージ - 通信のセットアップ完了
         print(f'initialize finish. {devicename = }, {baudrate = }, {id = }, {timeout = }')
         self._ser = serial.Serial(devicename,baudrate=baudrate,timeout=timeout)
         
@@ -50,7 +47,6 @@ class ThreadUART(Thread):
                     self._val2 = int(val2_temp)
                     connect_from_temp = connect_from_temp.lstrip("b'")
                     self._connect_from = int(connect_from_temp)
-                    # print(f'read success, {self._connect_from = }, {self._val1 = }, {self._val2 = }')
                     if self._val1 == 1:
                         self._iscomplete = False
                         self._isrelay = True
@@ -66,18 +62,14 @@ class ThreadUART(Thread):
                     elif self._val1 == 0:
                         self._iscomplete = False
                         self._isrelay = False
-                    # if self._val1 == 3 and self._id == self._connect_from:
-                    #     print("process rejected")
             except:
                 with self._lock:
-                    # print('read failed')
                     self._isrelay = False
                     self._iscomplete = False
                     self._connect_from = -1
             i += 1
             
             data = '' # clear data
-            # print('executed {} times'.format(i))
             sleep(0.2)
 
     def async_write(self):
@@ -87,15 +79,17 @@ class ThreadUART(Thread):
             # 送信するメッセージの組み立て
             with self._lock:
                 msg = ''
-                msg += '{},'.format(self._id) # MYID                
+                msg += '{},'.format(self._id)
                 if self._send_reset:
                     msg += '3,'# リセットコマンドは最優先で処理
                     msg += str(self._unsetflags)
                     msg += ',*'
+                    # 一定回数の書き出しで送信を取りやめる(flagにより管理)
                     j += 1 
                     if j >= 20:
                         self._send_reset = False
                         j = 0
+                        
                 elif self._iscomplete:
                     msg += '2,'# ID0からすべてのデバイスがつながっている
                     msg += '0,*' # dummy
